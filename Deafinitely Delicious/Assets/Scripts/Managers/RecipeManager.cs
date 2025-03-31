@@ -21,7 +21,17 @@ public class RecipeManager : MonoBehaviour
 
     public void CollectIngredient(string ingredient)
     {
-    
+        if (currentRecipe != null && currentRecipe.requiredIngredients.Contains(ingredient))
+        {
+            collectedIngredients.Add(ingredient);
+            uiManager.UpdateInstructions("Collected: " + string.Join(", ", collectedIngredients));
+
+            // Check if all ingredients are collected
+            if (collectedIngredients.Count == currentRecipe.requiredIngredients.Count)
+            {
+                uiManager.UpdateInstructions("Click the highlighted tool to start cooking.");
+            }
+        }
     }
 
     public void TryStartMinigame(string toolName)

@@ -1,17 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class KnifeRotation : MonoBehaviour
 {
-    public float rotationSpeed = 55f; // Speed of rotation
-    public float minAngle = 70f; // Left rotation limit
-    public float maxAngle = 70f; // Right rotation limit
+    public float rotationSpeed = 50f;
+    public float minAngle = -50f;
+    public float maxAngle = -50f;
     private bool rotatingRight = true;
+    private bool isPickedUp = false;
+
+    public Transform tablePosition;
+    public Transform pivotPosition;
+    public BreadManager breadManager; // Reference to the bread manager
+
+    void Start()
+    {
+        transform.position = tablePosition.position;
+    }
 
     void Update()
     {
-        RotateKnife();
+        if (isPickedUp)
+        {
+            RotateKnife();
+        }
     }
 
     void RotateKnife()
@@ -40,16 +51,32 @@ public class KnifeRotation : MonoBehaviour
     public bool AttemptSlice()
     {
         float currentAngle = transform.eulerAngles.z;
-        if (Mathf.Abs(currentAngle) < 5f || Mathf.Abs(currentAngle - 360f) < 5f) // Close to 0 degrees
+        bool isSuccessful = Mathf.Abs(currentAngle) < 5f || Mathf.Abs(currentAngle - 360f) < 5f;
+
+        if (isSuccessful)
         {
             Debug.Log("Perfect slice!");
-            return true; // Success
         }
         else
         {
             Debug.Log("Angled slice! Adjusting...");
-            return false; // Failed attempt
+        }
+
+        if (breadManager != null)
+        {
+            breadManager.UpdateBreadSprite(isSuccessful); // Update bread & track success/fail
+        }
+
+        return isSuccessful;
+    }
+
+    public void PickUpKnife()
+    {
+        if (!isPickedUp)
+        {
+            isPickedUp = true;
+            transform.position = pivotPosition.position;
+            Debug.Log("Knife picked up!");
         }
     }
 }
-

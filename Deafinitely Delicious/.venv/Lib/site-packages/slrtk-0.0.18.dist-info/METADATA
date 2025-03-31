@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: slrtk
+Version: 0.0.18
+Summary: Packaging for SLR tools
+Author-email: Ananay Vikram Gupta <ananay@gatech.edu>, Samantha Mau <smau3@gatech.edu>
+License-Expression: MIT
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.8
+Requires-Dist: docker
+Requires-Dist: requests
+Description-Content-Type: text/markdown
+
+# Package for SLR Tools 
+This project is maintained by the Contextual Computing Group at Georgia Tech.
+This project is an effort to provide a uniform CLI interface for common work done on the Sign Language Recognition research efforts. 
+
+Current Maintainers:
+- Ananay Vikram Gupta
+- Samantha Mau
