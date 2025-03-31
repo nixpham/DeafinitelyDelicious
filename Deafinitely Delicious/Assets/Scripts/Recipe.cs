@@ -15,4 +15,3 @@ public class CookingStep
     public string toolName;
     public string minigameName;
 }
-
