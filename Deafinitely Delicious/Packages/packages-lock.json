@@ -129,6 +129,12 @@
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
+
+    "dev.yarnspinner.unity": {
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
