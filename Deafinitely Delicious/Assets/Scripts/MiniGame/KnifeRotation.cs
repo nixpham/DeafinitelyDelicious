@@ -36,20 +36,5 @@ public class KnifeRotation : MonoBehaviour
             }
         }
     }
-
-    public bool AttemptSlice()
-    {
-        float currentAngle = transform.eulerAngles.z;
-        if (Mathf.Abs(currentAngle) < 5f || Mathf.Abs(currentAngle - 360f) < 5f) // Close to 0 degrees
-        {
-            Debug.Log("Perfect slice!");
-            return true; // Success
-        }
-        else
-        {
-            Debug.Log("Angled slice! Adjusting...");
-            return false; // Failed attempt
-        }
-    }
 }
 

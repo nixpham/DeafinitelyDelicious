@@ -23,7 +23,7 @@ public class CookBook : MonoBehaviour
         _cookbook.onClick.AddListener(OpenCookBook);
         _xbutton.onClick.AddListener(CloseCookBook);
         _openGrilledCheese.onClick.AddListener(OpenGrilledCheeseRecipe);
-        _cookbutton.onClick.AddListener(() => recipeManager.SelectRecipe("Grilled Cheese"));
+        _cookbutton.onClick.AddListener(CookRecipe);
     }
 
     private void OpenCookBook()
@@ -42,5 +42,11 @@ public class CookBook : MonoBehaviour
     private void OpenGrilledCheeseRecipe()
     {
         grilledCheesePage.SetActive(true); // Opens grilled cheese page
+    }
+
+    private void CookRecipe()
+    {
+        recipeManager.SelectRecipe("Grilled Cheese");
+        CloseCookBook();
     }
 }
