@@ -3,38 +3,33 @@ using System.Collections.Generic;
 
 public class MinigameManager : MonoBehaviour
 {
-    // Reference to each minigame panel
     public GameObject slicingMinigamePanel;
     public GameObject stackingMinigamePanel;
     public GameObject flippingMinigamePanel;
 
     private GameObject activeMinigame = null;
+    public RecipeManager recipeManager;
 
-    // Method to open the minigame by name
     public void OpenMinigame(string minigameName)
     {
-        // Deactivate any active minigame panel
-        if (activeMinigame != null)
-        {
-            activeMinigame.SetActive(false);
-        }
-
-        // Activate the chosen minigame panel
         switch (minigameName)
         {
             case "SlicingMinigamePanel":
                 slicingMinigamePanel.SetActive(true);
                 activeMinigame = slicingMinigamePanel;
+                Debug.Log("Opening slicing minigame panel");  // Debug log for panel opening
                 break;
 
             case "StackingMinigamePanel":
                 stackingMinigamePanel.SetActive(true);
                 activeMinigame = stackingMinigamePanel;
+                Debug.Log("Opening stacking minigame panel");
                 break;
 
             case "FlippingMinigamePanel":
                 flippingMinigamePanel.SetActive(true);
                 activeMinigame = flippingMinigamePanel;
+                Debug.Log("Opening flipping minigame panel");
                 break;
 
             default:
@@ -43,13 +38,33 @@ public class MinigameManager : MonoBehaviour
         }
     }
 
-    // Method to close the current minigame panel
     public void CloseMinigame()
     {
         if (activeMinigame != null)
         {
             activeMinigame.SetActive(false);
             activeMinigame = null;
+        }
+
+        // Notify RecipeManager that the minigame is completed
+        if (recipeManager != null)
+        {
+            recipeManager.CompleteMinigame(); // Call this method to progress the recipe
+        }
+    }
+
+
+    public void RestartMinigame()
+    {
+        if (activeMinigame != null)
+        {
+            Debug.Log("Restarting minigame: " + activeMinigame.name);  // Debug log for restarting
+            activeMinigame.SetActive(false); // Close it first
+            activeMinigame.SetActive(true);  // Reopen to reset
+        }
+        else
+        {
+            Debug.LogError("No active minigame to restart.");
         }
     }
 }
