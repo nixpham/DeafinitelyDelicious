@@ -499,6 +499,7 @@ RectTransform:
   m_Children:
   - {fileID: 1728194494}
   - {fileID: 1153360710}
+  - {fileID: 1265743640}
   m_Father: {fileID: 716960449}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -682,6 +683,8 @@ MonoBehaviour:
   knife: {fileID: 1153360709}
   cuttingBoard: {fileID: 1728194493}
   bread: {fileID: 1620689997}
+  cheese: {fileID: 1309684141}
+  grater: {fileID: 1265743639}
 --- !u!4 &157467278
 Transform:
   m_ObjectHideFlags: 0
@@ -729,6 +732,7 @@ MonoBehaviour:
   slicingMinigamePanel: {fileID: 205152237}
   stackingMinigamePanel: {fileID: 814822580}
   flippingMinigamePanel: {fileID: 808373354}
+  recipeManager: {fileID: 157467277}
 --- !u!4 &173896485
 Transform:
   m_ObjectHideFlags: 0
@@ -762,7 +766,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &205152238
 RectTransform:
   m_ObjectHideFlags: 0
@@ -841,7 +845,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tableKnife: {fileID: 577891928}
   rotatingKnife: {fileID: 1997177035}
-  engine: {fileID: 0}
+  breadImage: {fileID: 2063594611}
+  breadSlices:
+  - {fileID: 21300000, guid: 858877e2002043c4dab8c53c69cba1d5, type: 3}
+  - {fileID: 21300000, guid: f88f911a9f56eaa4897f316d31727bdf, type: 3}
+  - {fileID: 21300000, guid: f3350720d58d33747883060944f02c18, type: 3}
+  - {fileID: 21300000, guid: 0997e5b28980e594c886d98912b8b786, type: 3}
+  engine: {fileID: 870983443}
 --- !u!1 &227647778
 GameObject:
   m_ObjectHideFlags: 0
@@ -1272,7 +1282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &577891929
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1641,6 +1651,7 @@ RectTransform:
   - {fileID: 63665311}
   - {fileID: 75288969}
   - {fileID: 1620689998}
+  - {fileID: 1309684142}
   - {fileID: 1387224193}
   - {fileID: 1577173287}
   - {fileID: 205152238}
@@ -2023,6 +2034,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3934829239177150351, guid: 497d5c774c3ce4f1ca5df896393cac60, type: 3}
   m_PrefabInstance: {fileID: 778562474}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &870983443 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3508694001495842164, guid: 497d5c774c3ce4f1ca5df896393cac60, type: 3}
+  m_PrefabInstance: {fileID: 778562474}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ce881f852aa24ed8aada6bc011e617a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &886111096
 GameObject:
   m_ObjectHideFlags: 0
@@ -3904,6 +3926,138 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1222797648}
   m_CullTransparentMesh: 1
+--- !u!1 &1265743639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1265743640}
+  - component: {fileID: 1265743643}
+  - component: {fileID: 1265743642}
+  - component: {fileID: 1265743641}
+  m_Layer: 5
+  m_Name: Grater
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1265743640
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265743639}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 75288969}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -359, y: 111.7}
+  m_SizeDelta: {x: 43.3136, y: 58.8348}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1265743641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265743639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1265743642}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 157467277}
+        m_TargetAssemblyTypeName: RecipeManager, Assembly-CSharp
+        m_MethodName: TryStartMinigame
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: CheeseGrater
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1265743642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265743639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 7efb4316c6e29944c95eaebe3db8e9bc, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1265743643
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265743639}
+  m_CullTransparentMesh: 1
 --- !u!1 &1287672097
 GameObject:
   m_ObjectHideFlags: 0
@@ -4036,6 +4190,96 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &1309684141
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1309684142}
+  - component: {fileID: 1309684145}
+  - component: {fileID: 1309684144}
+  - component: {fileID: 1309684143}
+  m_Layer: 5
+  m_Name: Cheese
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1309684142
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309684141}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 716960449}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -272.93, y: 169.351}
+  m_SizeDelta: {x: 66.945, y: 41.9019}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1309684143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309684141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c19f2fd09967c214e8dccab47dc82636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  countertopArea: {fileID: 1387224193}
+  recipeManager: {fileID: 157467277}
+--- !u!114 &1309684144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309684141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1309684145
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309684141}
+  m_CullTransparentMesh: 1
 --- !u!1 &1311714206
 GameObject:
   m_ObjectHideFlags: 0
@@ -4730,7 +4974,7 @@ GameObject:
   - component: {fileID: 1620689999}
   - component: {fileID: 1620690002}
   m_Layer: 0
-  m_Name: Bread
+  m_Name: Bread Loaf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5338,7 +5582,7 @@ GameObject:
   - component: {fileID: 1728194495}
   - component: {fileID: 1728194498}
   m_Layer: 0
-  m_Name: CuttingB
+  m_Name: Cutting Board
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6751,7 +6995,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1997177036
 RectTransform:
   m_ObjectHideFlags: 0

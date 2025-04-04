@@ -15,7 +15,7 @@ public class RecipeManager : MonoBehaviour
     public UIManager uiManager; // Reference to update instructions
 
     // Assign these in the Unity Inspector
-    public GameObject knife, cuttingBoard, bread;
+    public GameObject knife, cuttingBoard, bread, cheese, grater;
 
     void Start()
     {
@@ -42,8 +42,8 @@ public class RecipeManager : MonoBehaviour
                 { 
                     toolName = "CheeseGrater", 
                     minigameName = "StackingMinigamePanel", 
-                    requiredObjects = new List<GameObject> { }, 
-                    requiredCountertopObjects = new List<GameObject>() 
+                    requiredObjects = new List<GameObject> { grater, cheese, bread }, 
+                    requiredCountertopObjects = new List<GameObject> { cheese, bread }
                 },
                 new CookingStep 
                 { 
@@ -91,7 +91,11 @@ public class RecipeManager : MonoBehaviour
         if (currentRecipe != null)
         {
             Debug.Log("Selected Recipe: " + currentRecipe.recipeName);
-            uiManager.UpdateInstructions("Place the loaf of bread and the cutting board on the counter");
+            
+            // Get the first step
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+            string objectsNeeded = GetObjectNames(step.requiredCountertopObjects);
+            uiManager.UpdateInstructions($"Place the {objectsNeeded} on the counter.");
 
             ShowStepObjects(); // Show objects for the first step
         }
@@ -122,6 +126,12 @@ public class RecipeManager : MonoBehaviour
 
     public void TryStartMinigame(string toolName)
     {
+        if (currentRecipe == null)
+        {
+            Debug.LogError("No recipe selected! Cannot start minigame.");
+            return;
+        }
+
         if (currentRecipe != null && currentStepIndex < currentRecipe.cookingSteps.Count)
         {
             CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
@@ -139,15 +149,18 @@ public class RecipeManager : MonoBehaviour
 
     public void CompleteMinigame()
     {
-        HideStepObjects(); // Hide previous step objects
+        HideStepObjects(); // Hide objects from the previous step
 
         currentStepIndex++;
-        placedObjects.Clear(); // Reset for next step
+        placedObjects.Clear(); // Clear placed objects for the next step
 
         if (currentStepIndex < currentRecipe.cookingSteps.Count)
         {
-            ShowStepObjects(); // Show next step objects
-            uiManager.UpdateInstructions($"Next, use the {currentRecipe.cookingSteps[currentStepIndex].toolName}");
+            ShowStepObjects(); // Show next step's required objects
+
+            // Prompt to place the countertop objects first
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+            uiManager.UpdateInstructions($"Place the {GetObjectNames(step.requiredCountertopObjects)} on the counter.");
         }
         else
         {
@@ -174,15 +187,47 @@ public class RecipeManager : MonoBehaviour
 
     void HideStepObjects()
     {
-        if (currentStepIndex >= 0 && currentStepIndex < currentRecipe.cookingSteps.Count)
-        {
-            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+        Debug.Log("Attempting to hide step objects...");
 
-            foreach (GameObject obj in step.requiredCountertopObjects)
-            {
-                obj.SetActive(false);
-            }
+        if (currentRecipe == null)
+        {
+            Debug.LogError("currentRecipe is NULL! Make sure a recipe is selected before calling HideStepObjects.");
+            return;
         }
+
+        if (currentStepIndex < 0 || currentStepIndex >= currentRecipe.cookingSteps.Count)
+        {
+            Debug.LogError($"Invalid step index! Step index {currentStepIndex} is out of range (max {currentRecipe.cookingSteps.Count - 1}).");
+            return;
+        }
+
+        CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+
+        if (step == null)
+        {
+            Debug.LogError("Step is null! Cannot hide objects.");
+            return;
+        }
+
+        if (step.requiredCountertopObjects == null)
+        {
+            Debug.LogError("Step requiredCountertopObjects list is null!");
+            return;
+        }
+
+        foreach (GameObject obj in step.requiredCountertopObjects)
+        {
+            if (obj == null)
+            {
+                Debug.LogError("One of the objects in requiredCountertopObjects is null!");
+                continue;
+            }
+
+            Debug.Log($"Hiding {obj.name}");
+            obj.SetActive(false);
+        }
+
+        Debug.Log("Successfully hid step objects.");
     }
 
     void HighlightTool(string toolName)
@@ -205,6 +250,19 @@ public class RecipeManager : MonoBehaviour
             Debug.Log($"Adding Outline to {toolName}");
             outline = tool.AddComponent<Outline>();
         }
+    }
+
+    private string GetObjectNames(List<GameObject> objects)
+    {
+        if (objects == null || objects.Count == 0) return "";
+
+        List<string> names = new List<string>();
+        foreach (var obj in objects)
+        {
+            names.Add(obj.name);
+        }
+
+        return string.Join(" and ", names);
     }
 
 }
