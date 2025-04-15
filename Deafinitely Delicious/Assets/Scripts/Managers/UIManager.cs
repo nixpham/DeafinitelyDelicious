@@ -4,7 +4,8 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public TMP_Text instructionText; // Ensure this is a public variable
+    public TMP_Text instructionText;
+    public TMP_Text stepsText;
 
     public void UpdateInstructions(string newText)
     {
@@ -15,6 +16,18 @@ public class UIManager : MonoBehaviour
         else
         {
             Debug.LogError("Instruction Text is not assigned in UIManager!");
+        }
+    }
+
+    public void UpdateSteps(string newText)
+    {
+        if (stepsText != null)
+        {
+            stepsText.text = newText;
+        }
+        else
+        {
+            Debug.LogError("Steps Text is not assigned in UIManager!");
         }
     }
 }

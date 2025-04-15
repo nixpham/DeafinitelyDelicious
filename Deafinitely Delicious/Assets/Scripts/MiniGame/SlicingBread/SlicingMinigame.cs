@@ -14,6 +14,7 @@ public class SlicingMinigame : MonoBehaviour
     public Sprite[] breadSlices; // Array of sprites for different bread slice states
 
     private MinigameManager minigameManager;
+    public UIManager uiManager;
 
     public SimpleExecutionEngine engine;
     private bool init;
@@ -40,6 +41,7 @@ public class SlicingMinigame : MonoBehaviour
         attempts = 0;
         successfulCuts = 0;
         breadImage.sprite = breadSlices[0]; // Set initial bread slice sprite
+        uiManager.UpdateSteps("Sign 'Dance' to pick up the knife!");
     }
 
     void Update()
@@ -72,6 +74,7 @@ public class SlicingMinigame : MonoBehaviour
         if (sign.ToLower() == "dance") // Check if the recognized sign is "knife"
         {
             PickUpKnife();
+            uiManager.UpdateSteps("Sign 'Cut' to pick up the knife!");
         }
 
         if (sign.ToLower() == "cut" && rotatingKnife.activeSelf) // Check if sign is "cut" and knife has been picked up
