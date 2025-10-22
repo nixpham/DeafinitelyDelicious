@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class MinigameManager : MonoBehaviour
 {
+    public GameObject signRecognizer;
     public GameObject slicingMinigamePanel;
     public GameObject stackingMinigamePanel;
     public GameObject flippingMinigamePanel;
@@ -17,7 +18,7 @@ public class MinigameManager : MonoBehaviour
             case "SlicingMinigamePanel":
                 slicingMinigamePanel.SetActive(true);
                 activeMinigame = slicingMinigamePanel;
-                Debug.Log("Opening slicing minigame panel");  // Debug log for panel opening
+                Debug.Log("Opening slicing minigame panel");
                 break;
 
             case "StackingMinigamePanel":
@@ -36,6 +37,8 @@ public class MinigameManager : MonoBehaviour
                 Debug.LogError("Minigame not found: " + minigameName);
                 break;
         }
+
+        EnableCamera(true);
     }
 
     public void CloseMinigame()
@@ -45,6 +48,8 @@ public class MinigameManager : MonoBehaviour
             activeMinigame.SetActive(false);
             activeMinigame = null;
         }
+
+        EnableCamera(false);
 
         // Notify RecipeManager that the minigame is completed
         if (recipeManager != null)
@@ -58,7 +63,7 @@ public class MinigameManager : MonoBehaviour
     {
         if (activeMinigame != null)
         {
-            Debug.Log("Restarting minigame: " + activeMinigame.name);  // Debug log for restarting
+            Debug.Log("Restarting minigame: " + activeMinigame.name);
             activeMinigame.SetActive(false); // Close it first
             activeMinigame.SetActive(true);  // Reopen to reset
         }
@@ -66,5 +71,10 @@ public class MinigameManager : MonoBehaviour
         {
             Debug.LogError("No active minigame to restart.");
         }
+    }
+
+    public void EnableCamera(bool enable)
+    {
+        signRecognizer.SetActive(enable);
     }
 }
