@@ -11,7 +11,7 @@ public class RecipeManager : MonoBehaviour
 
     public RectTransform countertopArea;
 
-    public GameObject knife, cuttingBoard, bread, cheese, grater;
+    public GameObject knife, cuttingBoard, bread, cheese, grater, pan, plate;
 
     private Recipe currentRecipe;
     private int currentStepIndex = 0;
@@ -57,7 +57,7 @@ public class RecipeManager : MonoBehaviour
                 {
                     toolName = "Pan",
                     minigameName = "FlippingMinigamePanel",
-                    requiredObjects = new List<GameObject>(),
+                    requiredObjects = new List<GameObject> { pan },
                     requiredCountertopObjects = new List<GameObject>()
                 }
             }
@@ -79,6 +79,8 @@ public class RecipeManager : MonoBehaviour
         var maybe = new[] { knife, cuttingBoard, bread, cheese, grater };
         foreach (var go in maybe)
             if (go && !required.Contains(go)) go.SetActive(false);
+
+        if (plate) plate.SetActive(false);
     }
 
     public void SelectRecipe(string recipeName)
@@ -86,6 +88,8 @@ public class RecipeManager : MonoBehaviour
         currentRecipe = recipes.Find(r => r.recipeName == recipeName);
         currentStepIndex = 0;
         placedObjects.Clear();
+
+        if (plate) plate.SetActive(false);
 
         if (CurrentStep == null)
         {
@@ -155,7 +159,8 @@ public class RecipeManager : MonoBehaviour
         }
         else
         {
-            uiManager?.UpdateInstructions("Recipe complete!");
+            if (plate) plate.SetActive(true);
+            uiManager?.UpdateInstructions("Now grab the plate to serve it!");
         }
     }
 
