@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 845478c6a6e1ccb4b8830c60407f60cd, type: 3}
-  m_Name: NewNPCDialogue
+  m_Name: MCDialogue
   m_EditorClassIdentifier: 
   npcName: Bread
   npcPortrait: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
@@ -32,7 +32,11 @@ MonoBehaviour:
     but to close it down."
   - "That day, I made a promise to myself: Once I graduate, I\u2019ll come back home
     and bring Grandma\u2019s restaurant back to life."
-  restaurantLines: []
+  restaurantLines:
+  - "It felt like yesterday since I last came here. It\u2019s a whole lot barren
+    though that\u2019s for sure."
+  - Oh! Someone is at the door I should let them in.
+  - She must be tired from today. I should go talk to her.
   choices:
   - options: []
   typingSpeed: 0.05
