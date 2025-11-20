@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using Engine;
 using Common;
 
-public class FlippingMinigame : MonoBehaviour
+public class FlipMinigame : MonoBehaviour
 {
     [Header("Pan / Sandwich UI")]
     [SerializeField] private Image panImage;
