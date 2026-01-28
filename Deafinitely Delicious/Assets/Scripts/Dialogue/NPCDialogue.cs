@@ -4,8 +4,8 @@ public class NPCDialogue : ScriptableObject
 {
     public string npcName;
     public Sprite npcPortrait;
-    public string[] prologueLines;
-    public string[] restaurantLines;
+    public DialogueLine[] prologueLines;
+    public DialogueLine[] restaurantLines;
     public DialogueChoice[] choices;
 
     public float typingSpeed = 0.05f;
@@ -18,6 +18,7 @@ public class DialogueOption
 {
     public string text;
     public int nextLineIndex;
+    public int nextNextLineIndex;
 }
 
 [System.Serializable]
@@ -26,3 +27,10 @@ public class DialogueChoice
     public DialogueOption[] options;
 }
 
+[System.Serializable]
+public class DialogueLine
+{
+    public string nameText;
+    public Sprite portraitImage;
+    [TextArea] public string text;
+}

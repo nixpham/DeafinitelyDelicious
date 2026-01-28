@@ -15,29 +15,75 @@ MonoBehaviour:
   npcName: Bread
   npcPortrait: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
   prologueLines:
-  - "I still remember the afternoons I spent at Grandma\u2019s restaurant when I
-    was younger. After school, I\u2019d always go straight there, settling into the
-    special seat\u2014the one where all her regulars sat. Grandma would always bring
-    me my favorite dish. Nothing ever tasted better than her homemade chicken pot
-    pie."
-  - "I\u2019d sit there, waiting for Mom to finish work. When she arrived, she\u2019d
-    join me, and we\u2019d eat together\u2014it was our little routine."
-  - "Sometimes, other people would be seated at my table. Grandma always introduced
-    me, encouraging me to chat with them. I\u2019d say hello, maybe share a few words,
-    but I was usually too caught up in whatever I was doing to really get to know
-    them."
-  - "When I left for college, what I missed most wasn\u2019t just the food\u2014it
-    was the warmth of the place, the feeling of home. But the hardest news came when
-    I heard that Grandma was getting too sick to run the restaurant. She had no choice
-    but to close it down."
-  - "That day, I made a promise to myself: Once I graduate, I\u2019ll come back home
-    and bring Grandma\u2019s restaurant back to life."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "I still remember the afternoons I spent at Grandma\u2019s restaurant when
+      I was younger. After school, I\u2019d always go straight there, settling into
+      the special seat\u2014the one where all her regulars sat. Grandma would always
+      bring me my favorite dish. Nothing ever tasted better than her homemade chicken
+      pot pie."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "I\u2019d sit there, waiting for Mom to finish work. When she arrived,
+      she\u2019d join me, and we\u2019d eat together\u2014it was our little routine."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "Sometimes, other people would be seated at my table. Grandma always introduced
+      me, encouraging me to chat with them. I\u2019d say hello, maybe share a few
+      words, but I was usually too caught up in whatever I was doing to really get
+      to know them."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "When I left for college, what I missed most wasn\u2019t just the food\u2014it
+      was the warmth of the place, the feeling of home. But the hardest news came
+      when I heard that Grandma was getting too sick to run the restaurant. She had
+      no choice but to close it down."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "That day, I made a promise to myself: Once I graduate, I\u2019ll come
+      back home and bring Grandma\u2019s restaurant back to life."
   restaurantLines:
-  - "It felt like yesterday since I last came here. It\u2019s a whole lot barren
-    though that\u2019s for sure."
-  - Oh! Someone is at the door I should let them in.
-  - She must be tired from today. I should go talk to her.
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: "It felt like yesterday since I last came here. It\u2019s a whole lot barren
+      though that\u2019s for sure."
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Oh! Someone is at the door, I should let them in.
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: She must be tired from today. I should go talk to her.
+  - nameText: Mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: Hey sweetie, how does the place look?
+  - nameText: Mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: "Haha, yeah, it\u2019s nice to be back in this room."
+  - nameText: Mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: "Yeah, we had to sell a couple of things since we didn\u2019t have anywhere
+      to put it."
+  - nameText: Mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: We should go visit your grandma, she has been waiting to see you
+  - nameText: MC
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: I guess I will have to follow her.
   choices:
+  - options: []
+  - options: []
+  - options: []
+  - options:
+    - text: Just like how I remembered!
+      nextLineIndex: 4
+      nextNextLineIndex: 6
+    - text: "It\u2019s missing a few things."
+      nextLineIndex: 5
+      nextNextLineIndex: 6
+  - options: []
+  - options: []
+  - options: []
+  - options: []
   - options: []
   typingSpeed: 0.05
   autoProgressLines: 

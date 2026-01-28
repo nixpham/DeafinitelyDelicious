@@ -2568,7 +2568,22 @@ MonoBehaviour:
   nameText: {fileID: 909881950}
   portraitImage: {fileID: 1677231434}
   dialogueIndex: 0
-  currentDialogueLines: []
+  currentDialogueLines:
+  - nameText: mc
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: 1
+  - nameText: mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: 2
+  - nameText: mc
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: 3
+  - nameText: mom
+    portraitImage: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+    text: 4
+  - nameText: mc
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: 5
 --- !u!4 &1980995804
 Transform:
   m_ObjectHideFlags: 0

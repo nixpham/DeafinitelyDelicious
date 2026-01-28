@@ -795,7 +795,25 @@ MonoBehaviour:
   nameText: {fileID: 601198468}
   portraitImage: {fileID: 1755750332}
   dialogueIndex: 0
-  currentDialogueLines: []
+  currentDialogueLines:
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
+  - nameText: Bread
+    portraitImage: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+    text: Hi
 --- !u!4 &830296107
 Transform:
   m_ObjectHideFlags: 0

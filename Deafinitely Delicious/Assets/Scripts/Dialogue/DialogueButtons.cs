@@ -10,6 +10,7 @@ public class DialogueButtons : MonoBehaviour
     public NPC npcScript;
     public Button[] buttons;
     public TMP_Text[] buttonText;
+    //public bool resume = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -44,11 +45,12 @@ public class DialogueButtons : MonoBehaviour
                 Debug.Log("Button text" + buttonText[i].text);
                 buttons[i].onClick.RemoveAllListeners();
                 int nextIndex = options[i].nextLineIndex;
+                int nextNextIndex = options[i].nextNextLineIndex;
                 buttons[i].onClick.AddListener(() =>
                 {
-                    npcScript.ResumeAfterClick(nextIndex);
-                    Debug.Log("Next index " + nextIndex);
                     HideButtons();
+                    StartCoroutine(PlayDialogue(nextIndex, nextNextIndex));
+  
                 });
             }
             else
@@ -75,6 +77,14 @@ public class DialogueButtons : MonoBehaviour
         {
             button.gameObject.SetActive(false);
         }
+    }
+
+    private IEnumerator PlayDialogue(int nextIndex, int nextNextIndex)
+    {
+        yield return StartCoroutine(npcScript.PlayAtIndex(nextIndex));
+        npcScript.runNextLine = true;
+        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        npcScript.ResumeAfterClick(nextNextIndex);
     }
 }
 

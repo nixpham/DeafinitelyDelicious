@@ -25,22 +25,25 @@ public class HighLightObject : MonoBehaviour
         if (index == 1)
         {
             door.SetActive(true);
-            npcScript.BlockUntilObjectClicked();
+            npcScript.runNextLine = false;
             Debug.Log("Highlight Door active");
         }
         else if (index == 2)
         {
             door.SetActive(false);
             Debug.Log("Highlight Door inactive");
-
+            npcScript.runNextLine = false;
+            Debug.Log("nextline is" + npcScript.runNextLine);
             mom.SetActive(true);
-            npcScript.BlockUntilObjectClicked();
             Debug.Log("Highlight Mom active");
 
         }
         else if (index == 3)
         {
             mom.SetActive(false);
+            npcScript.runNextLine = false;
+            Debug.Log("2 nextline is" + npcScript.runNextLine);
+
             Debug.Log("Highlight Mom inactive");
 
         }
@@ -48,16 +51,19 @@ public class HighLightObject : MonoBehaviour
 
     public void OnDoorClicked()
     {
-        npcScript.ResumeAfterClick(2);
-
+        npcScript.runNextLine = true;
         door.SetActive(false);
+        npcScript.ResumeAfterClick(2);
     }
 
     public void OnMomClicked()
     {
-        npcScript.ResumeAfterClick(3);
-
+        npcScript.runNextLine = true;
         mom.SetActive(false);
+        Debug.Log("3 nextline is" + npcScript.runNextLine);
+
+        Debug.Log("Resuming code after mom");
+        npcScript.ResumeAfterClick(3);
     }
     
     // Update is called once per frame
