@@ -278,8 +278,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70
-  m_fontSizeBase: 70
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -484,11 +484,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1080
+      value: 977.5
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 1920
+      value: 547.25
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_LocalPosition.x
@@ -520,11 +520,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 540
+      value: 488.75
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 960
+      value: 273.63
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -536,10 +536,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5187105386538752238, guid: 890e1091ed126654baae286d783bf535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5643845316968331621, guid: 890e1091ed126654baae286d783bf535, type: 3}
-      propertyPath: m_PresetInfoIsWorld
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -767,8 +763,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -325, y: -800}
-  m_SizeDelta: {x: 300, y: 200}
+  m_AnchoredPosition: {x: -327, y: -217}
+  m_SizeDelta: {x: 115.4085, y: 55.4809}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1842649822
 GameObject:

@@ -16,7 +16,6 @@ public class CookBook : MonoBehaviour
     [SerializeField] Button _cookbutton; // The button to cook a recipe
 
     public RecipeManager recipeManager; // Reference to RecipeManager
-    public StudySessionPopup studySessionPopup;
 
     void Start()
     {
@@ -47,19 +46,7 @@ public class CookBook : MonoBehaviour
 
     private void CookRecipe()
     {
-        Debug.Log("CookRecipe called on " + gameObject.name);
-
         recipeManager.SelectRecipe("Grilled Cheese");
         CloseCookBook();
-
-        if (studySessionPopup != null)
-        {
-            Debug.Log("Opening Study Session popup…");
-            studySessionPopup.OpenSession(new [] { "Dance", "Cut" });
-        }
-        else
-        {
-            Debug.LogWarning("CookBook: studySessionPopup is not assigned in the Inspector.");
-        }
     }
 }

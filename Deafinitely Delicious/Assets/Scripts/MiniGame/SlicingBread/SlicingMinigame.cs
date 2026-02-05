@@ -3,21 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Engine;
-using System;
+using System; 
 using Common;
 
 public class SlicingMinigame : MonoBehaviour
 {
-    [Header("Objects")]
-    public GameObject tableKnife;    // The static knife on the table
+    public GameObject tableKnife;  // The static knife on the table
     public GameObject rotatingKnife; // The knife that rotates
-    
-    [Header("Bread UI")]
-    public Image breadImage;         
-    public Sprite[] breadSlices;     // Sprites for different bread slice states
-
-    [Header("Attempts UI")]
-    [SerializeField] private AttemptsUI attemptsUI;   // NEW — hook your AttemptsUI prefab here
+    public Image breadImage; // The bread image to update
+    public Sprite[] breadSlices; // Array of sprites for different bread slice states
 
     private MinigameManager minigameManager;
     public UIManager uiManager;
@@ -25,9 +19,8 @@ public class SlicingMinigame : MonoBehaviour
     public SimpleExecutionEngine engine;
     private bool init;
     private int frame = 0;
-
-    private int attempts = 0;        // Total tries
-    private int successfulCuts = 0;  // Successful cuts
+    private int attempts = 0;
+    private int successfulCuts = 0;
 
     private List<string> levelSigns = new List<string>
     {
@@ -37,31 +30,23 @@ public class SlicingMinigame : MonoBehaviour
 
     void Start()
     {
-        minigameManager = FindObjectOfType<MinigameManager>();
+        minigameManager = FindObjectOfType<MinigameManager>(); // Find MinigameManager in the scene
         if (minigameManager == null)
         {
-            Debug.LogError("MinigameManager not found!");
+            Debug.LogError("MinigameManager not found in the scene!");
         }
 
-        // Start in default state
-        rotatingKnife.SetActive(false);
-        tableKnife.SetActive(true);
-
+        rotatingKnife.SetActive(false); // Hide the rotating knife at start
+        tableKnife.SetActive(true);  // Ensure the table knife is visible
         attempts = 0;
         successfulCuts = 0;
-
-        breadImage.sprite = breadSlices[0];
+        breadImage.sprite = breadSlices[0]; // Set initial bread slice sprite
         uiManager.UpdateSteps("Sign 'Dance' to pick up the knife!");
-
-        // NEW: reset the circles at the start
-        if (attemptsUI != null)
-            attemptsUI.ResetAttempts();
     }
 
     void Update()
     {
-        if (!init)
-        {
+        if (!init) {
             engine.recognizer.AddCallback("print", OnSignRecognized);
             engine.recognizer.outputFilters.Clear();
             engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(levelSigns));
@@ -69,16 +54,16 @@ public class SlicingMinigame : MonoBehaviour
             init = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && rotatingKnife.activeSelf)
+        if (Input.GetKeyDown(KeyCode.Space) && rotatingKnife.activeSelf) // Press Space to attempt a cut
         {
             CheckCut();
         }
-
-        if (frame == 200)
-        {
+        
+        if (frame == 200) {
             frame = 0;
             engine.buffer.TriggerCallbacks();
         }
+
         else frame++;
     }
 
@@ -86,13 +71,13 @@ public class SlicingMinigame : MonoBehaviour
     {
         Debug.Log("Recognized sign: " + sign);
 
-        if (sign.ToLower() == "dance")
+        if (sign.ToLower() == "dance") // Check if the recognized sign is "knife"
         {
             PickUpKnife();
-            uiManager.UpdateSteps("Sign 'Cut' to attempt a slice!");
+            uiManager.UpdateSteps("Sign 'Cut' to pick up the knife!");
         }
 
-        if (sign.ToLower() == "cut" && rotatingKnife.activeSelf)
+        if (sign.ToLower() == "cut" && rotatingKnife.activeSelf) // Check if sign is "cut" and knife has been picked up
         {
             CheckCut();
         }
@@ -101,38 +86,36 @@ public class SlicingMinigame : MonoBehaviour
     public void PickUpKnife()
     {
         Debug.Log("Knife picked up!");
-        tableKnife.SetActive(false);
-        rotatingKnife.SetActive(true);
+        tableKnife.SetActive(false); // Hide the table knife
+        rotatingKnife.SetActive(true); // Show the rotating knife
     }
 
     private void CheckCut()
     {
-        Debug.Log("Attempting a cut...");
+        Debug.Log("Attempting a cut...");  // Add debug log to track the method being called
         attempts++;
 
+        // Check the angle of the knife
         float angle = rotatingKnife.transform.eulerAngles.z;
-        bool success = Mathf.Abs(angle) < 10f || Mathf.Abs(angle - 360f) < 10f;
+        bool isVertical = Mathf.Abs(angle) < 10f || Mathf.Abs(angle - 360f) < 10f;
 
-        if (success)
+        if (isVertical)
         {
             successfulCuts++;
-            Debug.Log("Successful Cut! (" + successfulCuts + "/2)");
+            Debug.Log("Successful Cut! (" + successfulCuts + " out of 2)");
         }
         else
         {
             Debug.Log("Failed Cut! Knife is too angled.");
         }
 
-        // NEW — update the circle UI
-        if (attemptsUI != null)
-            attemptsUI.RegisterAttempt(success);
-
-        // Update bread sprite
+        // Update bread sprite based on attempts
         UpdateBreadSprite();
 
+        // Check for success or failure
         if (successfulCuts >= 2)
         {
-            Debug.Log("Minigame Success! Closing panel...");
+            Debug.Log("Minigame Success! Panel Closing...");
             EndMinigame();
         }
         else if (attempts >= 4)
@@ -146,38 +129,42 @@ public class SlicingMinigame : MonoBehaviour
     {
         if (attempts < breadSlices.Length)
         {
-            breadImage.sprite = breadSlices[attempts];
+            breadImage.sprite = breadSlices[attempts]; // Change bread sprite based on attempts
         }
         else
         {
-            Debug.LogWarning("No more bread slice sprites!");
+            Debug.LogWarning("No more bread slices available!");
         }
     }
 
     private void EndMinigame()
     {
-        Debug.Log("Ending the slicing minigame...");
+        Debug.Log("Ending the minigame...");  // Log to confirm the function is being called
         if (minigameManager != null)
+        {
             minigameManager.CloseMinigame();
+        }
         else
-            Debug.LogError("MinigameManager missing!");
+        {
+            Debug.LogError("MinigameManager reference is missing! Cannot close minigame.");
+        }
     }
 
     private void RestartMinigame()
     {
+        // Reset variables
         attempts = 0;
         successfulCuts = 0;
-        breadImage.sprite = breadSlices[0];
+        breadImage.sprite = breadSlices[0]; // Reset bread sprite to initial state
 
-        // NEW: reset attempt circles
-        if (attemptsUI != null)
-            attemptsUI.ResetAttempts();
-
+        // Ensure knife is hidden and table knife is visible again
         rotatingKnife.SetActive(false);
         tableKnife.SetActive(true);
-        rotatingKnife.transform.rotation = Quaternion.identity;
 
-        Debug.Log("Minigame Restarted!");
-        uiManager.UpdateSteps("Sign 'Dance' to pick up the knife!");
+        // Reset knife rotation and ready it for slicing again
+        rotatingKnife.transform.rotation = Quaternion.identity; // Reset knife rotation to 0 degrees
+
+        // Log to confirm that restart process is working
+        Debug.Log("Minigame Restarted - Knife Reset");
     }
 }
