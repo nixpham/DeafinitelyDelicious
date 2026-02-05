@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,25 +6,16 @@ using UnityEngine.UI;
 public class RecipeManager : MonoBehaviour
 {
     public List<Recipe> recipes;
-
-    public MinigameManager minigameManager;
-    public UIManager uiManager;
-
-    public RectTransform countertopArea;
-
-    public GameObject knife, cuttingBoard, bread, cheese, grater, pan, plate;
-
     private Recipe currentRecipe;
     private int currentStepIndex = 0;
-    private readonly HashSet<GameObject> placedObjects = new HashSet<GameObject>();
+    private List<string> collectedIngredients = new List<string>();
+    private HashSet<GameObject> placedObjects = new HashSet<GameObject>();
 
-    private CookingStep CurrentStep =>
-        currentRecipe != null &&
-        currentRecipe.cookingSteps != null &&
-        currentStepIndex >= 0 &&
-        currentStepIndex < currentRecipe.cookingSteps.Count
-            ? currentRecipe.cookingSteps[currentStepIndex]
-            : null;
+    public MinigameManager minigameManager; // Reference to MinigameManager
+    public UIManager uiManager; // Reference to update instructions
+
+    // Assign these in the Unity Inspector
+    public GameObject knife, cuttingBoard, bread, cheese, grater;
 
     void Start()
     {
@@ -33,32 +25,32 @@ public class RecipeManager : MonoBehaviour
 
     void InitializeRecipes()
     {
-        var grilledCheese = new Recipe
+        Recipe grilledCheese = new Recipe
         {
             recipeName = "Grilled Cheese",
             requiredIngredients = new List<string> { "Bread", "Butter", "Cheese" },
             cookingSteps = new List<CookingStep>
             {
-                new CookingStep
-                {
-                    toolName = "Knife",
-                    minigameName = "SlicingMinigamePanel",
-                    requiredObjects = new List<GameObject> { knife, bread, cuttingBoard },
-                    requiredCountertopObjects = new List<GameObject> { bread, cuttingBoard }
+                new CookingStep 
+                { 
+                    toolName = "Knife", 
+                    minigameName = "SlicingMinigamePanel", 
+                    requiredObjects = new List<GameObject> { knife, bread, cuttingBoard }, 
+                    requiredCountertopObjects = new List<GameObject> { bread, cuttingBoard } 
                 },
-                new CookingStep
-                {
-                    toolName = "Grater",
-                    minigameName = "StackingMinigamePanel",
-                    requiredObjects = new List<GameObject> { grater, cheese, bread },
+                new CookingStep 
+                { 
+                    toolName = "CheeseGrater", 
+                    minigameName = "StackingMinigamePanel", 
+                    requiredObjects = new List<GameObject> { grater, cheese, bread }, 
                     requiredCountertopObjects = new List<GameObject> { cheese, bread }
                 },
-                new CookingStep
-                {
-                    toolName = "Pan",
-                    minigameName = "FlippingMinigamePanel",
-                    requiredObjects = new List<GameObject> { pan },
-                    requiredCountertopObjects = new List<GameObject>()
+                new CookingStep 
+                { 
+                    toolName = "Pan", 
+                    minigameName = "FlippingMinigamePanel", 
+                    requiredObjects = new List<GameObject> { }, 
+                    requiredCountertopObjects = new List<GameObject>() 
                 }
             }
         };
@@ -68,193 +60,209 @@ public class RecipeManager : MonoBehaviour
 
     void InitializeStepObjects()
     {
-        var required = new HashSet<GameObject>();
-        foreach (var r in recipes)
-        foreach (var s in r.cookingSteps)
+        HashSet<GameObject> allRequiredObjects = new HashSet<GameObject>();
+
+        foreach (Recipe recipe in recipes)
         {
-            if (s.requiredObjects != null)            required.UnionWith(s.requiredObjects);
-            if (s.requiredCountertopObjects != null)  required.UnionWith(s.requiredCountertopObjects);
+            foreach (CookingStep step in recipe.cookingSteps)
+            {
+                allRequiredObjects.UnionWith(step.requiredObjects);
+                allRequiredObjects.UnionWith(step.requiredCountertopObjects);
+            }
         }
 
-        var maybe = new[] { knife, cuttingBoard, bread, cheese, grater };
-        foreach (var go in maybe)
-            if (go && !required.Contains(go)) go.SetActive(false);
-
-        if (plate) plate.SetActive(false);
+        // Hide only objects that aren't in any step
+        foreach (GameObject obj in new GameObject[] { knife, bread, cuttingBoard })
+        {
+            if (!allRequiredObjects.Contains(obj))
+            {
+                obj.SetActive(false);
+            }
+        }
     }
 
     public void SelectRecipe(string recipeName)
     {
-        currentRecipe = recipes.Find(r => r.recipeName == recipeName);
-        currentStepIndex = 0;
+        currentRecipe = recipes.Find(recipe => recipe.recipeName == recipeName);
+        collectedIngredients.Clear();
         placedObjects.Clear();
+        currentStepIndex = 0;
 
-        if (plate) plate.SetActive(false);
-
-        if (CurrentStep == null)
+        if (currentRecipe != null)
         {
-            Debug.LogError($"Recipe '{recipeName}' not found or has no steps.");
-            return;
-        }
+            Debug.Log("Selected Recipe: " + currentRecipe.recipeName);
+            
+            // Get the first step
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+            string objectsNeeded = GetObjectNames(step.requiredCountertopObjects);
+            uiManager.UpdateInstructions($"Place the {objectsNeeded} on the counter.");
 
-        ShowStepObjects();
-        SyncPlacedObjectsWithCounterArea();
-        UpdatePlacementInstruction();
-        TryUnlockToolIfReady();
+            ShowStepObjects(); // Show objects for the first step
+        }
     }
 
     public void ObjectPlaced(GameObject obj)
     {
-        var step = CurrentStep;
-        if (step == null || obj == null) return;
+        if (currentRecipe == null) return;
 
-        if (step.requiredCountertopObjects != null && step.requiredCountertopObjects.Contains(obj))
+        CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+
+        if (step.requiredCountertopObjects.Contains(obj))
         {
-            if (IsObjectOnCounterUI(obj))
-            {
-                placedObjects.Add(obj);
-                obj.SetActive(true);
+            placedObjects.Add(obj);
+            obj.SetActive(true); // Ensure the object remains visible on the counter
 
-                if (!TryUnlockToolIfReady())
-                    UpdatePlacementInstruction();
-            }
-            else
+            Debug.Log($"Placed {obj.name}, total placed objects: {placedObjects.Count}");
+
+            // Check if all required counter objects are placed
+            if (placedObjects.Count == step.requiredCountertopObjects.Count)
             {
-                UpdatePlacementInstruction();
+                Debug.Log("All required objects placed, updating instructions.");
+                uiManager.UpdateInstructions($"Now get the {step.toolName} to begin slicing!");
+                HighlightTool(step.toolName);
             }
         }
     }
 
     public void TryStartMinigame(string toolName)
     {
-        var step = CurrentStep;
-        if (step == null) return;
-
-        SyncPlacedObjectsWithCounterArea();
-
-        if (step.toolName == toolName && placedObjects.Count == (step.requiredCountertopObjects?.Count ?? 0))
+        if (currentRecipe == null)
         {
-            minigameManager?.OpenMinigame(step.minigameName);
+            Debug.LogError("No recipe selected! Cannot start minigame.");
+            return;
         }
-        else
+
+        if (currentRecipe != null && currentStepIndex < currentRecipe.cookingSteps.Count)
         {
-            if (!TryUnlockToolIfReady())
-                UpdatePlacementInstruction();
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+
+            if (step.toolName == toolName && placedObjects.Count == step.requiredCountertopObjects.Count)
+            {
+                minigameManager.OpenMinigame(step.minigameName);
+            }
+            else
+            {
+                uiManager.UpdateInstructions("Not the right tool or ingredients missing!");
+            }
         }
     }
 
     public void CompleteMinigame()
     {
-        HideObjectsNotNeededAnymore(currentStepIndex);
+        HideStepObjects(); // Hide objects from the previous step
 
         currentStepIndex++;
-        placedObjects.Clear();
+        placedObjects.Clear(); // Clear placed objects for the next step
 
-        if (CurrentStep != null)
+        if (currentStepIndex < currentRecipe.cookingSteps.Count)
         {
-            ShowStepObjects();
-            SyncPlacedObjectsWithCounterArea();
-            UpdatePlacementInstruction();
-            TryUnlockToolIfReady();
+            ShowStepObjects(); // Show next step's required objects
+
+            // Prompt to place the countertop objects first
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+            uiManager.UpdateInstructions($"Place the {GetObjectNames(step.requiredCountertopObjects)} on the counter.");
         }
         else
         {
-            if (plate) plate.SetActive(true);
-            uiManager?.UpdateInstructions("Now grab the plate to serve it!");
+            uiManager.UpdateInstructions("Recipe complete!");
         }
     }
 
     void ShowStepObjects()
     {
-        var step = CurrentStep;
-        if (step?.requiredObjects == null) return;
+        if (currentStepIndex < currentRecipe.cookingSteps.Count)
+        {
+            CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
 
-        foreach (var obj in step.requiredObjects)
-            if (obj && !obj.activeSelf) obj.SetActive(true);
+            // Ensure required objects are ALWAYS visible
+            foreach (GameObject obj in step.requiredObjects)
+            {
+                if (obj != null && !obj.activeSelf)
+                {
+                    obj.SetActive(true);
+                }
+            }
+        }
     }
 
-    void HideObjectsNotNeededAnymore(int completedIndex)
+    void HideStepObjects()
     {
-        if (currentRecipe == null ||
-            completedIndex < 0 ||
-            completedIndex >= currentRecipe.cookingSteps.Count) return;
+        Debug.Log("Attempting to hide step objects...");
 
-        var justCompleted = currentRecipe.cookingSteps[completedIndex];
-
-        var nextNeeds = new HashSet<GameObject>();
-        var nextIndex = completedIndex + 1;
-        if (nextIndex < currentRecipe.cookingSteps.Count)
+        if (currentRecipe == null)
         {
-            var next = currentRecipe.cookingSteps[nextIndex];
-            if (next.requiredCountertopObjects != null) nextNeeds.UnionWith(next.requiredCountertopObjects);
-            if (next.requiredObjects != null)           nextNeeds.UnionWith(next.requiredObjects);
+            Debug.LogError("currentRecipe is NULL! Make sure a recipe is selected before calling HideStepObjects.");
+            return;
         }
 
-        if (justCompleted.requiredCountertopObjects == null) return;
-
-        foreach (var obj in justCompleted.requiredCountertopObjects)
-            if (obj) obj.SetActive(nextNeeds.Contains(obj));
-    }
-
-    void SyncPlacedObjectsWithCounterArea()
-    {
-        var step = CurrentStep;
-        if (step?.requiredCountertopObjects == null) return;
-
-        foreach (var obj in step.requiredCountertopObjects)
-            if (obj && IsObjectOnCounterUI(obj)) placedObjects.Add(obj);
-    }
-
-    bool IsObjectOnCounterUI(GameObject obj)
-    {
-        if (!countertopArea) return false;
-        var rect = obj.GetComponent<RectTransform>();
-        if (!rect) return false;
-
-        return RectTransformUtility.RectangleContainsScreenPoint(countertopArea, rect.position, null);
-    }
-
-    bool TryUnlockToolIfReady()
-    {
-        var step = CurrentStep;
-        if (step == null) return false;
-
-        int need = step.requiredCountertopObjects?.Count ?? 0;
-        if (placedObjects.Count == need)
+        if (currentStepIndex < 0 || currentStepIndex >= currentRecipe.cookingSteps.Count)
         {
-            uiManager?.UpdateInstructions($"Now get the {step.toolName} to begin!");
-            HighlightTool(step.toolName);
-            return true;
+            Debug.LogError($"Invalid step index! Step index {currentStepIndex} is out of range (max {currentRecipe.cookingSteps.Count - 1}).");
+            return;
         }
-        return false;
+
+        CookingStep step = currentRecipe.cookingSteps[currentStepIndex];
+
+        if (step == null)
+        {
+            Debug.LogError("Step is null! Cannot hide objects.");
+            return;
+        }
+
+        if (step.requiredCountertopObjects == null)
+        {
+            Debug.LogError("Step requiredCountertopObjects list is null!");
+            return;
+        }
+
+        foreach (GameObject obj in step.requiredCountertopObjects)
+        {
+            if (obj == null)
+            {
+                Debug.LogError("One of the objects in requiredCountertopObjects is null!");
+                continue;
+            }
+
+            Debug.Log($"Hiding {obj.name}");
+            obj.SetActive(false);
+        }
+
+        Debug.Log("Successfully hid step objects.");
     }
 
     void HighlightTool(string toolName)
     {
-        var tool = GameObject.Find(toolName);
-        if (!tool) return;
+        GameObject tool = GameObject.Find(toolName);
+        if (tool == null)
+        {
+            return;
+        }
 
-        var button = tool.GetComponent<Button>();
-        if (!button) return;
+        Button button = tool.GetComponent<Button>();
+        if (button == null)
+        {
+            return;
+        }
 
-        if (!tool.GetComponent<Outline>()) tool.AddComponent<Outline>();
+        Outline outline = tool.GetComponent<Outline>();
+        if (outline == null)
+        {
+            Debug.Log($"Adding Outline to {toolName}");
+            outline = tool.AddComponent<Outline>();
+        }
     }
 
-    void UpdatePlacementInstruction()
-    {
-        var step = CurrentStep;
-        if (step == null) return;
-
-        int need = step.requiredCountertopObjects?.Count ?? 0;
-        int have = placedObjects.Count;
-        uiManager?.UpdateInstructions($"Place the {GetObjectNames(step.requiredCountertopObjects)} on the counter. ({have}/{need})");
-    }
-
-    string GetObjectNames(List<GameObject> objects)
+    private string GetObjectNames(List<GameObject> objects)
     {
         if (objects == null || objects.Count == 0) return "";
-        var names = new List<string>();
-        foreach (var o in objects) if (o) names.Add(o.name);
+
+        List<string> names = new List<string>();
+        foreach (var obj in objects)
+        {
+            names.Add(obj.name);
+        }
+
         return string.Join(" and ", names);
     }
+
 }
