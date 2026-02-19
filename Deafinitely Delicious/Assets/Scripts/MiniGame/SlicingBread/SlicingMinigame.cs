@@ -133,11 +133,17 @@ public class SlicingMinigame : MonoBehaviour
         if (successfulCuts >= 2)
         {
             Debug.Log("Minigame Success! Closing panel...");
+
+            ScoreManager.Instance?.AddWinPoints();
+
             EndMinigame();
         }
         else if (attempts >= 4)
         {
             Debug.Log("Minigame Failed! Restarting...");
+
+            ScoreManager.Instance?.AddFailPenalty();
+
             RestartMinigame();
         }
     }

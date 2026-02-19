@@ -217,6 +217,9 @@ public class StackingMinigame : MonoBehaviour
         else if (attempts >= 4)
         {
             Debug.Log("[Stacking] Out of attempts → Restart.");
+
+            ScoreManager.Instance?.AddFailPenalty();
+
             RestartMinigame();
         }
         else
@@ -259,6 +262,9 @@ public class StackingMinigame : MonoBehaviour
         else
         {
             Debug.Log("[Stacking] DROP FAILED → Restart.");
+
+            ScoreManager.Instance?.AddFailPenalty();
+
             RestartMinigame();
         }
     }
@@ -289,6 +295,8 @@ public class StackingMinigame : MonoBehaviour
 
         uiManager?.UpdateSteps("Nice! Sandwich stacked.");
         Debug.Log("[Stacking] Success → closing.");
+
+        ScoreManager.Instance?.AddWinPoints();
 
         EndMinigame();
     }

@@ -369,6 +369,9 @@ public class FlipMinigame : MonoBehaviour
                 attemptsUI.RegisterAttempt(true);
 
             Debug.Log("[Flipping] Success – both sides cooked.");
+
+            ScoreManager.Instance?.AddWinPoints();
+
             minigameManager?.CloseMinigame();
         }
         else
@@ -385,6 +388,9 @@ public class FlipMinigame : MonoBehaviour
                 attemptsUI.RegisterAttempt(false);
 
             Debug.Log("[Flipping] Fail – restarting from butter.");
+
+            ScoreManager.Instance?.AddFailPenalty();
+
             StartCoroutine(RestartAfterDelay(0.8f));
         }
     }
