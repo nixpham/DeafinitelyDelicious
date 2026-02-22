@@ -357,6 +357,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1750354192}
     - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
+      propertyPath: dialogueButtons
+      value: 
+      objectReference: {fileID: 1999791082}
+    - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
       propertyPath: grannyPortraitObj
       value: 
       objectReference: {fileID: 1750354186}
