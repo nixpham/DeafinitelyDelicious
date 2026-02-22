@@ -14,28 +14,48 @@ public class DialogueButtons : MonoBehaviour
         HideButtons();
     }
 
-    public bool SetTextButton()
+    /// <summary>
+    /// Show choices for a specific dialogue line index.
+    /// NPC should call this using the line index that just finished typing.
+    /// </summary>
+    public bool SetTextButton(int lineIndex)
     {
-        int index = npcScript.dialogueIndex;
+        if (npcScript == null || npcScript.dialogueData == null)
+        {
+            Debug.LogWarning("[DialogueButtons] npcScript/dialogueData not assigned.");
+            HideButtons();
+            return false;
+        }
 
-        if (npcScript.dialogueData.choices == null ||
-            npcScript.dialogueData.choices.Length <= index ||
-            npcScript.dialogueData.choices[index] == null ||
-            npcScript.dialogueData.choices[index].options == null ||
-            npcScript.dialogueData.choices[index].options.Length == 0)
+        var choicesArr = npcScript.dialogueData.choices;
+
+        Debug.Log($"[DialogueButtons] SetTextButton(lineIndex={lineIndex}) " +
+                  $"choicesNull={(choicesArr == null)} " +
+                  $"choicesLen={(choicesArr != null ? choicesArr.Length : -1)}");
+
+        if (choicesArr == null ||
+            lineIndex < 0 ||
+            choicesArr.Length <= lineIndex ||
+            choicesArr[lineIndex] == null ||
+            choicesArr[lineIndex].options == null ||
+            choicesArr[lineIndex].options.Length == 0)
         {
             HideButtons();
             return false;
         }
 
-        DialogueOption[] options = npcScript.dialogueData.choices[index].options;
+        DialogueOption[] options = choicesArr[lineIndex].options;
 
         for (int i = 0; i < buttons.Length; i++)
         {
+            if (buttons[i] == null) continue;
+
             if (i < options.Length)
             {
                 buttons[i].gameObject.SetActive(true);
-                buttonText[i].text = options[i].text;
+
+                if (buttonText != null && i < buttonText.Length && buttonText[i] != null)
+                    buttonText[i].text = options[i].text;
 
                 buttons[i].onClick.RemoveAllListeners();
 
@@ -55,6 +75,15 @@ public class DialogueButtons : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Backwards compatible overload (not recommended).
+    /// Uses npcScript.dialogueIndex and can be wrong if NPC increments early.
+    /// </summary>
+    public bool SetTextButton()
+    {
+        return SetTextButton(npcScript != null ? npcScript.dialogueIndex : -1);
     }
 
     public bool AnyButtonActive()
@@ -78,11 +107,18 @@ public class DialogueButtons : MonoBehaviour
 
     private IEnumerator PlayDialogue(int nextIndex, int nextNextIndex)
     {
+        if (npcScript == null)
+            yield break;
+
+        // Play the immediate branch response line
         yield return StartCoroutine(npcScript.PlayAtIndex(nextIndex));
 
+        // Allow continuing (NPC will block advancement itself if it shows more choices)
         npcScript.runNextLine = true;
 
-        yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+        // Wait for a REAL dialogue-box click, not any mouse click
+        int startClicks = npcScript.DialogueBoxClickCount;
+        yield return new WaitUntil(() => npcScript.DialogueBoxClickCount > startClicks);
 
         npcScript.ResumeAfterClick(nextNextIndex);
     }

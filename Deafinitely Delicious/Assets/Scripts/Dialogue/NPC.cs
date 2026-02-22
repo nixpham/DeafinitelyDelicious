@@ -266,8 +266,7 @@ public class NPC : MonoBehaviour
         isTyping = false;
 
         DialogueButtons buttons = FindObjectOfType<DialogueButtons>();
-        bool hasChoices = buttons != null && buttons.SetTextButton();
-
+        bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
         runNextLine = !(buttons != null && buttons.AnyButtonActive());
     }
 
