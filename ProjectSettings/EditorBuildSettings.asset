@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/TitleScreen.unity
+    guid: 047f7f5497bce674a9eb6a25c85ee8e1
+  - enabled: 1
+    path: Assets/Scenes/PrologueScene.unity
+    guid: ad53f61fe317de54e968c13f53619f08
+  - enabled: 1
+    path: Assets/Scenes/RestaurantScene.unity
+    guid: b39f578e0c7d92c4a879993a316588f2
+  - enabled: 1
+    path: Assets/Scenes/MapScene.unity
+    guid: 1f244667031a3914eaf8475f3b29dc81
+  - enabled: 1
+    path: Assets/Scenes/KitchenScene.unity
+    guid: d61bb9a7e76d3894aaa8a98090dcc7cc
+  - enabled: 1
+    path: Assets/Scenes/FridgeScene.unity
+    guid: cc26750c142681b49a86f203e65eeb17
+  - enabled: 1
+    path: Assets/Scenes/GroceryScene.unity
+    guid: 08dbad1a75e41bb46bc5f89d960490d5
+  m_configObjects: {}
