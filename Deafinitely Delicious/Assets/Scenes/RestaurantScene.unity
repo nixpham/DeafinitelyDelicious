@@ -357,6 +357,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1750354192}
     - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
+      propertyPath: dialogueButtons
+      value: 
+      objectReference: {fileID: 1999791082}
+    - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
       propertyPath: grannyPortraitObj
       value: 
       objectReference: {fileID: 1750354186}
@@ -960,14 +964,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1621572403}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 11
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize2D: {x: 10, y: 10}
+  m_CookieSize: 10
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -1087,6 +1091,10 @@ PrefabInstance:
     - target: {fileID: 5912538576531494926, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6900016669266662570, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7787342974441082668, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
       propertyPath: m_Pivot.x

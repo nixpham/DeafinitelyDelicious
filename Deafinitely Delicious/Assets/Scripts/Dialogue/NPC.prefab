@@ -61,3 +61,4 @@ MonoBehaviour:
   isTyping: 0
   isDialogueActive: 0
   runNextLine: 0
+  dialogueButtons: {fileID: 0}
