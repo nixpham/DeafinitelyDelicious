@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class PrologueScript : MonoBehaviour
 {
     [SerializeField] Button _prologue;
-
+    [SerializeField] NPC dialogueData;
     void Start()
     {
         _prologue.onClick.AddListener(ContinueGame);
@@ -14,6 +14,10 @@ public class PrologueScript : MonoBehaviour
 
     private void ContinueGame()
     {
-        ScenesManager.Instance.LoadNextScene();
+        if (dialogueData.dialogueIndex == 9)
+        {
+            ScenesManager.Instance.LoadNextScene();
+
+        }
     }
 }
