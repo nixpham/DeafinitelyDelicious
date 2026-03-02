@@ -16,9 +16,6 @@ public class NPC : MonoBehaviour
     public GameObject dialogueRoot;
     public TMP_Text dialogueText;
 
-    [Header("Dialogue Buttons")]
-    public DialogueButtons dialogueButtons;
-
     [Header("Name Frames")]
     public GameObject leftNameFrame;
     public TMP_Text leftNameText;
@@ -45,6 +42,8 @@ public class NPC : MonoBehaviour
 
     private DialogueLine[] currentDialogueLines;
     private DialogueLine[] sourceLines;
+
+    [SerializeField] private DialogueButtons dialogueButtons;
 
     // speaker data
     private readonly Dictionary<string, SpeakerDefinition> speakers = new();
@@ -259,6 +258,8 @@ public class NPC : MonoBehaviour
         ApplyPortraitBump(line.speakerId);
 
         currentFullText = line.text;
+        bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
+        runNextLine = !hasChoices;//(buttons != null && buttons.AnyButtonActive());
 
         foreach (char c in line.text)
         {
@@ -268,9 +269,8 @@ public class NPC : MonoBehaviour
 
         isTyping = false;
 
-        DialogueButtons buttons = FindObjectOfType<DialogueButtons>();
-        bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
-        runNextLine = !(buttons != null && buttons.AnyButtonActive());
+        //bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
+        //runNextLine = !hasChoices;//(buttons != null && buttons.AnyButtonActive());
     }
 
     public IEnumerator PlayAtIndex(int index)
