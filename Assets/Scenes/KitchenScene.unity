@@ -1782,7 +1782,7 @@ MonoBehaviour:
   videoContainer: {fileID: 273852835}
   videoPlayer: {fileID: 2130730221}
   signNameText: {fileID: 1097493851}
-  replayButton: {fileID: 0}
+  replayButton: {fileID: 544037379}
   nextButton: {fileID: 1077079995}
   signClips:
   - {fileID: 32900000, guid: 533d0cf4685a4f341bcda9f7fcb2d272, type: 3}
