@@ -16,9 +16,6 @@ public class NPC : MonoBehaviour
     public GameObject dialogueRoot;
     public TMP_Text dialogueText;
 
-    [Header("Dialogue Buttons")]
-    public DialogueButtons dialogueButtons;
-
     [Header("Name Frames")]
     public GameObject leftNameFrame;
     public TMP_Text leftNameText;
