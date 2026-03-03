@@ -1,16 +1,53 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
+
+public enum DialogueSequence
+{
+    Prologue,
+    RestaurantIntro1,
+    RestaurantMomConvo1,
+    RestaurantIntro2,
+    RestaurantIntro3
+}
 
 public class NPC : MonoBehaviour
 {
+    // =========================
+    // GLOBAL DIALOGUE LOCK
+    // =========================
+    public static System.Action<bool> OnAnyDialogueActiveChanged;
+    private static int activeDialogueCount = 0;
+    public static bool AnyDialogueActive => activeDialogueCount > 0;
+
+    private static void NotifyDialogueStarted()
+    {
+        activeDialogueCount++;
+        if (activeDialogueCount == 1)
+            OnAnyDialogueActiveChanged?.Invoke(true);
+    }
+
+    private static void NotifyDialogueEnded()
+    {
+        activeDialogueCount = Mathf.Max(0, activeDialogueCount - 1);
+        if (activeDialogueCount == 0)
+            OnAnyDialogueActiveChanged?.Invoke(false);
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
     public System.Action<int> OnDialogueIndexChanged;
+    public System.Action<DialogueSequence> OnSequenceEnded;
 
     [Header("Dialogue Data")]
     public NPCDialogue dialogueData;
+
+    [Header("Sequence Selection")]
+    public DialogueSequence sequenceToPlay = DialogueSequence.Prologue;
 
     [Header("Dialogue Root")]
     public GameObject dialogueRoot;
@@ -19,50 +56,65 @@ public class NPC : MonoBehaviour
     [Header("Name Frames")]
     public GameObject leftNameFrame;
     public TMP_Text leftNameText;
-
     public GameObject rightNameFrame;
     public TMP_Text rightNameText;
 
-    [Header("NPC Portraits")]
-    public Image momPortrait;
+    [Header("Portrait Objects")]
     public GameObject momPortraitObj;
-
-    public Image grannyPortrait;
     public GameObject grannyPortraitObj;
 
-    [Header("Speaking Bump")]
+    [Header("Portrait Images (for bump)")]
+    public Image momPortrait;
+    public Image grannyPortrait;
     public float bumpAmount = 20f;
     public float bumpSpeed = 12f;
 
-    // state
+    [Header("Auto Start / Play Once")]
+    public bool autoStartInThisScene = true;
+    public bool playOnce = false;
+    public string playOnceId = "";
+
+    [SerializeField] private DialogueButtons dialogueButtons;
+
+    // =========================
+    // INTERNAL STATE
+    // =========================
     public int dialogueIndex;
     public bool isTyping;
     public bool isDialogueActive;
     public bool runNextLine;
 
+    private int dialogueBoxClickCount = 0;
+    public int DialogueBoxClickCount => dialogueBoxClickCount;
+
     private DialogueLine[] currentDialogueLines;
-    private DialogueLine[] sourceLines;
+    private DialogueChoice[] currentChoices;
 
-    [SerializeField] private DialogueButtons dialogueButtons;
-
-    // speaker data
     private readonly Dictionary<string, SpeakerDefinition> speakers = new();
     private readonly HashSet<string> introduced = new();
 
-    private const string MC = "mc";
-    private const string MOM = "mom";
-    private const string GRANNY = "granny";
-
     private string currentFullText = "";
+    private bool lastLineHadChoices = false;
 
     private RectTransform momRT;
     private RectTransform grannyRT;
     private Vector2 momBasePos;
     private Vector2 grannyBasePos;
 
-    private int dialogueBoxClickCount = 0;
-    public int DialogueBoxClickCount => dialogueBoxClickCount;
+    private bool externallyPaused = false;
 
+    private bool hasQueuedNextIndex = false;
+    private int queuedNextIndex = -1;
+
+    public void QueueNextLineIndex(int index)
+    {
+        hasQueuedNextIndex = true;
+        queuedNextIndex = index;
+    }
+
+    // =========================
+    // UNITY
+    // =========================
     void Awake()
     {
         BuildSpeakerLookup();
@@ -71,24 +123,240 @@ public class NPC : MonoBehaviour
 
     void Start()
     {
+        if (dialogueData == null) return;
+        if (!autoStartInThisScene) return;
+
+        if (playOnce && !string.IsNullOrWhiteSpace(playOnceId))
+        {
+            if (PlayerPrefs.GetInt(playOnceId, 0) == 1)
+                return;
+        }
+
         string scene = SceneManager.GetActiveScene().name;
 
-        if (dialogueData != null && (scene == "PrologueScene" || scene == "RestaurantScene"))
-        {
+        bool shouldStart =
+            (scene == "PrologueScene" && sequenceToPlay == DialogueSequence.Prologue) ||
+            (scene == "RestaurantScene" && sequenceToPlay != DialogueSequence.Prologue);
+
+        if (shouldStart)
             StartDialogue();
+    }
+
+    // =========================
+    // EXTERNAL CONTROL
+    // =========================
+    public void PlaySequence(DialogueSequence seq, bool usePlayOnce = false, string key = "")
+    {
+        sequenceToPlay = seq;
+        playOnce = usePlayOnce;
+        playOnceId = key;
+        StartDialogue();
+    }
+
+    public void SetExternalPause(bool paused)
+    {
+        externallyPaused = paused;
+        runNextLine = (!externallyPaused && !lastLineHadChoices && !isTyping);
+    }
+
+    public IEnumerator PlayAtIndex(int index)
+    {
+        StopAllCoroutines();
+        dialogueIndex = index;
+        yield return StartCoroutine(TypeLine());
+    }
+
+    public void ResumeAfterClick(int nextIndex)
+    {
+        StopAllCoroutines();
+        dialogueIndex = nextIndex;
+        StartCoroutine(TypeLine());
+    }
+
+    public void OnDialogueBoxClicked()
+    {
+        if (!isDialogueActive) return;
+
+        dialogueBoxClickCount++;
+
+        if (isTyping)
+        {
+            StopAllCoroutines();
+            dialogueText.SetText(currentFullText);
+            isTyping = false;
+            runNextLine = (!externallyPaused && !lastLineHadChoices);
+            return;
+        }
+
+        if (!runNextLine) return;
+
+        NextLine();
+    }
+
+    // =========================
+    // CORE FLOW
+    // =========================
+    void StartDialogue()
+    {
+        Debug.Log("timescale=" + Time.timeScale);
+        if (dialogueData == null) return;
+
+        if (playOnce && !string.IsNullOrWhiteSpace(playOnceId))
+        {
+            if (PlayerPrefs.GetInt(playOnceId, 0) == 1)
+                return;
+        }
+
+        NotifyDialogueStarted();
+
+        introduced.Clear();
+        HideNPCPortraits();
+
+        externallyPaused = false;
+        isDialogueActive = true;
+        runNextLine = true;
+        dialogueIndex = 0;
+
+        currentDialogueLines = GetLinesForSequence(sequenceToPlay);
+        currentChoices = GetChoicesForSequence(sequenceToPlay);
+
+        Debug.Log($"[NPC] StartDialogue seq={sequenceToPlay} lines={(currentDialogueLines == null ? -1 : currentDialogueLines.Length)} data={(dialogueData != null)} root={(dialogueRoot != null)}");
+
+        if (dialogueRoot != null)
+            dialogueRoot.SetActive(true);
+
+        StopAllCoroutines();
+        StartCoroutine(TypeLine());
+    }
+
+    void NextLine()
+    {
+        if (hasQueuedNextIndex)
+        {
+            dialogueIndex = queuedNextIndex;
+            hasQueuedNextIndex = false;
+            queuedNextIndex = -1;
+        }
+        else
+        {
+            dialogueIndex++;
+        }
+
+        if (dialogueIndex < currentDialogueLines.Length)
+        {
+            OnDialogueIndexChanged?.Invoke(dialogueIndex);
+            StartCoroutine(TypeLine());
+        }
+        else
+        {
+            EndDialogue();
         }
     }
 
+    IEnumerator TypeLine()
+    {
+        isTyping = true;
+
+        if (dialogueText != null)
+            dialogueText.SetText("");
+
+        var line = currentDialogueLines[dialogueIndex];
+
+        IntroduceIfNeeded(line.speakerId);
+        ApplyNameFrame(line.speakerId);
+        ApplyPortraitBump(line.speakerId);
+
+        currentFullText = line.text;
+
+        if (dialogueButtons != null)
+        {
+            dialogueButtons.SetChoicesSource(currentChoices);
+            lastLineHadChoices = dialogueButtons.SetTextButton(dialogueIndex);
+        }
+        else
+        {
+            lastLineHadChoices = false;
+        }
+
+        runNextLine = (!externallyPaused && !lastLineHadChoices);
+
+        foreach (char c in line.text)
+        {
+            dialogueText.text += c;
+            yield return new WaitForSecondsRealtime(dialogueData.typingSpeed);
+        }
+
+        isTyping = false;
+        runNextLine = (!externallyPaused && !lastLineHadChoices);
+    }
+
+    void EndDialogue()
+    {
+        StopAllCoroutines();
+        isDialogueActive = false;
+        runNextLine = false;
+        isTyping = false;
+        externallyPaused = false;
+
+        if (dialogueText != null)
+            dialogueText.SetText("");
+
+        if (dialogueRoot != null)
+            dialogueRoot.SetActive(false);
+
+        if (playOnce && !string.IsNullOrWhiteSpace(playOnceId))
+        {
+            PlayerPrefs.SetInt(playOnceId, 1);
+            PlayerPrefs.Save();
+        }
+
+        NotifyDialogueEnded();
+
+        OnSequenceEnded?.Invoke(sequenceToPlay);
+
+        if (SceneManager.GetActiveScene().name == "PrologueScene")
+            SceneManager.LoadScene("RestaurantScene");
+    }
+
+    // =========================
+    // DATA GETTERS
+    // =========================
+    private DialogueLine[] GetLinesForSequence(DialogueSequence seq)
+    {
+        switch (seq)
+        {
+            case DialogueSequence.Prologue: return dialogueData.prologueLines;
+            case DialogueSequence.RestaurantIntro1: return dialogueData.restaurantIntro1Lines;
+            case DialogueSequence.RestaurantMomConvo1: return dialogueData.restaurantMomConvo1Lines;
+            case DialogueSequence.RestaurantIntro2: return dialogueData.restaurantIntro2Lines;
+            case DialogueSequence.RestaurantIntro3: return dialogueData.restaurantIntro3Lines;
+            default: return new DialogueLine[0];
+        }
+    }
+
+    private DialogueChoice[] GetChoicesForSequence(DialogueSequence seq)
+    {
+        switch (seq)
+        {
+            case DialogueSequence.Prologue: return dialogueData.prologueChoices;
+            case DialogueSequence.RestaurantIntro1: return dialogueData.restaurantIntro1Choices;
+            case DialogueSequence.RestaurantMomConvo1: return dialogueData.restaurantMomConvo1Choices;
+            case DialogueSequence.RestaurantIntro2: return dialogueData.restaurantIntro2Choices;
+            case DialogueSequence.RestaurantIntro3: return dialogueData.restaurantIntro3Choices;
+            default: return null;
+        }
+    }
+
+    // =========================
+    // UI HELPERS
+    // =========================
     void BuildSpeakerLookup()
     {
         speakers.Clear();
         if (dialogueData == null || dialogueData.speakers == null) return;
-
         foreach (var s in dialogueData.speakers)
-        {
             if (!string.IsNullOrWhiteSpace(s.id))
                 speakers[s.id] = s;
-        }
     }
 
     void CachePortraitPositions()
@@ -106,80 +374,10 @@ public class NPC : MonoBehaviour
         }
     }
 
-    public void Interact()
-    {
-        if (dialogueData == null) return;
-
-        if (!isDialogueActive)
-            StartDialogue();
-        else
-            OnDialogueBoxClicked();
-    }
-
-    public void OnDialogueBoxClicked()
-    {
-        if (!isDialogueActive) return;
-
-        dialogueBoxClickCount++;
-
-        if (isTyping)
-        {
-            StopAllCoroutines();
-            dialogueText.SetText(currentFullText);
-            isTyping = false;
-            return;
-        }
-
-        if (!runNextLine) return;
-
-        NextLine();
-    }
-
-    void StartDialogue()
-    {
-        BuildSpeakerLookup();
-        CachePortraitPositions();
-
-        isDialogueActive = true;
-        runNextLine = true;
-        dialogueIndex = 0;
-
-        introduced.Clear();
-        HideNPCPortraits();
-
-        if (SceneManager.GetActiveScene().name == "PrologueScene")
-            sourceLines = dialogueData.prologueLines;
-        else if (SceneManager.GetActiveScene().name == "RestaurantScene")
-            sourceLines = dialogueData.restaurantLines;
-        else
-            sourceLines = new DialogueLine[0];
-
-        currentDialogueLines = new DialogueLine[sourceLines.Length];
-        for (int i = 0; i < sourceLines.Length; i++)
-        {
-            currentDialogueLines[i] = new DialogueLine
-            {
-                speakerId = sourceLines[i].speakerId,
-                text = sourceLines[i].text
-            };
-        }
-
-        dialogueRoot.SetActive(true);
-        StartCoroutine(TypeLine());
-    }
-
     void HideNPCPortraits()
     {
         if (momPortraitObj != null) momPortraitObj.SetActive(false);
         if (grannyPortraitObj != null) grannyPortraitObj.SetActive(false);
-
-        ResetPortraitPositions();
-    }
-
-    void ResetPortraitPositions()
-    {
-        if (momRT != null) momRT.anchoredPosition = momBasePos;
-        if (grannyRT != null) grannyRT.anchoredPosition = grannyBasePos;
     }
 
     void IntroduceIfNeeded(string speakerId)
@@ -187,10 +385,10 @@ public class NPC : MonoBehaviour
         if (introduced.Contains(speakerId)) return;
         introduced.Add(speakerId);
 
-        if (speakerId == MOM && momPortraitObj != null)
+        if (speakerId == "mom" && momPortraitObj != null)
             momPortraitObj.SetActive(true);
 
-        if (speakerId == GRANNY && grannyPortraitObj != null)
+        if (speakerId == "granny" && grannyPortraitObj != null)
             grannyPortraitObj.SetActive(true);
     }
 
@@ -200,25 +398,23 @@ public class NPC : MonoBehaviour
             ? s.displayName
             : speakerId;
 
-        bool left = speakerId == MC;
+        bool left = speakerId == "mc";
 
-        leftNameFrame.SetActive(left);
-        rightNameFrame.SetActive(!left);
+        if (leftNameFrame != null) leftNameFrame.SetActive(left);
+        if (rightNameFrame != null) rightNameFrame.SetActive(!left);
 
-        if (left)
+        if (left && leftNameText != null)
             leftNameText.SetText(displayName);
-        else
+        else if (!left && rightNameText != null)
             rightNameText.SetText(displayName);
     }
 
     void ApplyPortraitBump(string speakerId)
     {
-        ResetPortraitPositions();
-
-        if (speakerId == MOM && momRT != null)
+        if (speakerId == "mom" && momRT != null)
             StartCoroutine(BumpTo(momRT, momBasePos + Vector2.up * bumpAmount));
 
-        if (speakerId == GRANNY && grannyRT != null)
+        if (speakerId == "granny" && grannyRT != null)
             StartCoroutine(BumpTo(grannyRT, grannyBasePos + Vector2.up * bumpAmount));
     }
 
@@ -230,75 +426,5 @@ public class NPC : MonoBehaviour
             yield return null;
         }
         rt.anchoredPosition = target;
-    }
-
-    void NextLine()
-    {
-        dialogueIndex++;
-
-        if (dialogueIndex < currentDialogueLines.Length)
-        {
-            OnDialogueIndexChanged?.Invoke(dialogueIndex);
-            StartCoroutine(TypeLine());
-        }
-        else
-        {
-            EndDialogue();
-        }
-    }
-
-    IEnumerator TypeLine()
-    {
-        isTyping = true;
-        dialogueText.SetText("");
-
-        var line = currentDialogueLines[dialogueIndex];
-        IntroduceIfNeeded(line.speakerId);
-        ApplyNameFrame(line.speakerId);
-        ApplyPortraitBump(line.speakerId);
-
-        currentFullText = line.text;
-        bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
-        runNextLine = !hasChoices;//(buttons != null && buttons.AnyButtonActive());
-
-        foreach (char c in line.text)
-        {
-            dialogueText.text += c;
-            yield return new WaitForSeconds(dialogueData.typingSpeed);
-        }
-
-        isTyping = false;
-
-        //bool hasChoices = dialogueButtons != null && dialogueButtons.SetTextButton(dialogueIndex);
-        //runNextLine = !hasChoices;//(buttons != null && buttons.AnyButtonActive());
-    }
-
-    public IEnumerator PlayAtIndex(int index)
-    {
-        StopAllCoroutines();
-        dialogueIndex = index;
-        StartCoroutine(TypeLine());
-        yield return null;
-        runNextLine = false;
-    }
-
-    public void ResumeAfterClick(int nextIndex)
-    {
-        dialogueIndex = nextIndex;
-        StartCoroutine(TypeLine());
-    }
-
-    void EndDialogue()
-    {
-        StopAllCoroutines();
-        isDialogueActive = false;
-        runNextLine = false;
-        isTyping = false;
-
-        dialogueText.SetText("");
-        dialogueRoot.SetActive(false);
-
-        if (SceneManager.GetActiveScene().name == "PrologueScene")
-            SceneManager.LoadScene("RestaurantScene");
     }
 }

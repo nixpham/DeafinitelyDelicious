@@ -5,20 +5,25 @@ public class NPCDialogue : ScriptableObject
 {
     [Header("Scenes / Scripts")]
     public DialogueLine[] prologueLines;
-    public DialogueLine[] restaurantLines;
+
+    [Header("Restaurant Sequences")]
+    public DialogueLine[] restaurantIntro1Lines;
+    public DialogueLine[] restaurantMomConvo1Lines;
+    public DialogueLine[] restaurantIntro2Lines;
+    public DialogueLine[] restaurantIntro3Lines;
 
     [Header("Speakers (define MC + other characters here)")]
     public SpeakerDefinition[] speakers;
 
-    [Header("Choices (indexed by dialogue line index)")]
-    public DialogueChoice[] choices;
+    [Header("Choices (PER SEQUENCE, indexed by line index within that sequence)")]
+    public DialogueChoice[] prologueChoices;
+    public DialogueChoice[] restaurantIntro1Choices;
+    public DialogueChoice[] restaurantMomConvo1Choices;
+    public DialogueChoice[] restaurantIntro2Choices;
+    public DialogueChoice[] restaurantIntro3Choices;
 
     [Header("Typing")]
     public float typingSpeed = 0.05f;
-
-    [Header("Optional Auto Progress (unused in this rewrite, kept for future)")]
-    public bool[] autoProgressLines;
-    public float autoProgressLinesDelay = 1.5f;
 }
 
 public enum SpeakerSide
@@ -53,6 +58,7 @@ public class DialogueLine
 public class DialogueOption
 {
     public string text;
+
     public int nextLineIndex;
     public int nextNextLineIndex;
 }

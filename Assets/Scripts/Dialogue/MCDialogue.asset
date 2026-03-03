@@ -39,25 +39,28 @@ MonoBehaviour:
   - speakerId: mc
     text: "That day, I made a promise to myself: Once I graduate, I\u2019ll come
       back home and bring Grandma\u2019s restaurant back to life."
-  restaurantLines:
+  restaurantIntro1Lines:
   - speakerId: mc
     text: "It felt like yesterday since I last came here. It\u2019s a whole lot barren
-      though that\u2019s for sure."
+      though that\u2019s for sure"
   - speakerId: mc
-    text: Oh! Someone is at the door, I should let them in.
+    text: Oh! someone is at the door I should let them in
   - speakerId: mc
-    text: She must be tired from today. I should go talk to her.
+    text: She must be tired from today. I should go talk to her
+  restaurantMomConvo1Lines:
   - speakerId: mom
     text: Hey sweetie, how does the place look?
   - speakerId: mom
-    text: "Haha, yeah, it\u2019s nice to be back in this room."
+    text: "Haha yeah it\u2019s nice to be back in this room"
   - speakerId: mom
-    text: "Yeah, we had to sell a couple of things since we didn\u2019t have anywhere
-      to put it."
+    text: "Yeah we had to sell a couple of things since we didn\u2019t have anywhere
+      to put it"
   - speakerId: mom
     text: We should go visit your grandma, she has been waiting to see you
   - speakerId: mc
-    text: I guess I will have to follow her.
+    text: I guess I will have to follow her
+  restaurantIntro2Lines: []
+  restaurantIntro3Lines: []
   speakers:
   - id: mc
     displayName: You
@@ -71,22 +74,20 @@ MonoBehaviour:
     displayName: Granny
     portrait: {fileID: 21300000, guid: 1452cff74c38c604e8abd7e8043e0add, type: 3}
     defaultSide: 1
-  choices:
-  - options: []
-  - options: []
-  - options: []
+  prologueChoices: []
+  restaurantIntro1Choices: []
+  restaurantMomConvo1Choices:
   - options:
     - text: Just like how I remembered!
-      nextLineIndex: 4
-      nextNextLineIndex: 6
-    - text: "It\u2019s missing a few things."
-      nextLineIndex: 5
-      nextNextLineIndex: 6
+      nextLineIndex: 1
+      nextNextLineIndex: 3
+    - text: "It\u2019s missing a few things\u2026"
+      nextLineIndex: 2
+      nextNextLineIndex: 3
   - options: []
   - options: []
   - options: []
   - options: []
-  - options: []
+  restaurantIntro2Choices: []
+  restaurantIntro3Choices: []
   typingSpeed: 0.08
-  autoProgressLines: 
-  autoProgressLinesDelay: 1.5

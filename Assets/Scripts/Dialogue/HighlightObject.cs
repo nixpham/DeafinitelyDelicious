@@ -1,74 +1,68 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class HighLightObject : MonoBehaviour
+public class HighlightObject : MonoBehaviour
 {
+    [Header("References")]
     public NPC npcScript;
-    public GameObject door;
-    public GameObject mom;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    public GameObject doorHighlight;
+    public GameObject momHighlight;
+
+    [Header("Intro1 Indices (sequence-local)")]
+    public int pauseAtDoorIndex = 1;
+    public int resumeAfterDoorIndex = 2;
+
+    public int pauseAtMomIndex = 3;
+    public int resumeAfterMomIndex = 4;
+
     void Start()
     {
-        npcScript.OnDialogueIndexChanged += HandleDialogueIndexChanged;
+        if (npcScript != null)
+            npcScript.OnDialogueIndexChanged += HandleDialogueIndexChanged;
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
-        npcScript.OnDialogueIndexChanged -= HandleDialogueIndexChanged;
+        if (npcScript != null)
+            npcScript.OnDialogueIndexChanged -= HandleDialogueIndexChanged;
     }
-    public void HandleDialogueIndexChanged(int index)
+
+    private void HandleDialogueIndexChanged(int index)
     {
-        if (SceneManager.GetActiveScene().name != "RestaurantScene")
-        {
-            return;
-        }
-        if (index == 1)
-        {
-            door.SetActive(true);
-            npcScript.runNextLine = false;
-            Debug.Log("Highlight Door active");
-        }
-        else if (index == 2)
-        {
-            door.SetActive(false);
-            Debug.Log("Highlight Door inactive");
-            npcScript.runNextLine = false;
-            Debug.Log("nextline is" + npcScript.runNextLine);
-            mom.SetActive(true);
-            Debug.Log("Highlight Mom active");
+        if (npcScript == null) return;
 
-        }
-        else if (index == 3)
+        // Pause + highlight door
+        if (index == pauseAtDoorIndex)
         {
-            mom.SetActive(false);
-            npcScript.runNextLine = false;
-            Debug.Log("2 nextline is" + npcScript.runNextLine);
+            if (doorHighlight != null) doorHighlight.SetActive(true);
+            if (momHighlight != null) momHighlight.SetActive(false);
 
-            Debug.Log("Highlight Mom inactive");
+            npcScript.SetExternalPause(true);
+        }
 
+        // Pause + highlight mom
+        if (index == pauseAtMomIndex)
+        {
+            if (doorHighlight != null) doorHighlight.SetActive(false);
+            if (momHighlight != null) momHighlight.SetActive(true);
+
+            npcScript.SetExternalPause(true);
         }
     }
 
     public void OnDoorClicked()
     {
-        npcScript.runNextLine = true;
-        door.SetActive(false);
-        npcScript.ResumeAfterClick(2);
+        if (doorHighlight != null) doorHighlight.SetActive(false);
+
+        npcScript.SetExternalPause(false);
+        npcScript.ResumeAfterClick(resumeAfterDoorIndex);
     }
 
     public void OnMomClicked()
     {
-        npcScript.runNextLine = true;
-        mom.SetActive(false);
-        Debug.Log("3 nextline is" + npcScript.runNextLine);
+        if (momHighlight != null) momHighlight.SetActive(false);
 
-        Debug.Log("Resuming code after mom");
-        npcScript.ResumeAfterClick(3);
-    }
-    
-    // Update is called once per frame
-    void Update()
-    {
-        
+        npcScript.SetExternalPause(false);
+        npcScript.ResumeAfterClick(resumeAfterMomIndex);
     }
 }
