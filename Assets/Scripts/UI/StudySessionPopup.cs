@@ -24,7 +24,7 @@ public class StudySessionPopup : MonoBehaviour
     public Button nextButton;
 
     [Header("Sign Clips")]
-    public List<VideoClip> signClips;  // Assign in Inspector: [0] = Dance, [1] = Cut
+    public List<VideoClip> signClips;
 
     private string[] _signNames;
     private int _currentIndex = 0;
@@ -44,13 +44,11 @@ public class StudySessionPopup : MonoBehaviour
     public void OpenSession(string[] signNames)
     {
         _signNames = signNames;
-
         _currentIndex = 0;
 
         if (popupRoot != null)
             popupRoot.SetActive(true);
 
-        // Show intro state
         ShowIntroState();
     }
 
@@ -80,7 +78,6 @@ public class StudySessionPopup : MonoBehaviour
 
     private void OnContinueIntro()
     {
-        // Hide the intro text and show the video + controls
         if (introText != null)
             introText.gameObject.SetActive(false);
 
@@ -96,7 +93,6 @@ public class StudySessionPopup : MonoBehaviour
         if (nextButton != null)
             nextButton.gameObject.SetActive(true);
 
-        // Start the first sign video
         PlayCurrentSign();
     }
 
@@ -127,9 +123,7 @@ public class StudySessionPopup : MonoBehaviour
         videoPlayer.Play();
 
         if (signNameText != null && _signNames != null && _currentIndex < _signNames.Length)
-        {
             signNameText.text = "Sign: " + _signNames[_currentIndex];
-        }
     }
 
     private void OnReplay()
@@ -142,15 +136,9 @@ public class StudySessionPopup : MonoBehaviour
         _currentIndex++;
 
         if (_currentIndex < signClips.Count && _signNames != null && _currentIndex < _signNames.Length)
-        {
-            // Play next sign
             PlayCurrentSign();
-        }
         else
-        {
-            // No more signs – close the popup
             CloseSession();
-        }
     }
 
     private void CloseSession()
