@@ -11,6 +11,10 @@ public class DialogueButtons : MonoBehaviour
 
     private DialogueChoice[] choicesSource;
 
+    private const string MOM_RESPONSE_KEY = "MOM_RESPONSE";
+    private const int MOM_HOME = 0;
+    private const int MOM_NOT_SAME = 1;
+
     void Start() => HideButtons();
 
     public void SetChoicesSource(DialogueChoice[] source) => choicesSource = source;
@@ -37,6 +41,7 @@ public class DialogueButtons : MonoBehaviour
             if (i < options.Length)
             {
                 buttons[i].gameObject.SetActive(true);
+
                 if (buttonText != null && i < buttonText.Length && buttonText[i] != null)
                     buttonText[i].text = options[i].text;
 
@@ -44,14 +49,19 @@ public class DialogueButtons : MonoBehaviour
 
                 int nextIndex = options[i].nextLineIndex;
                 int nextNextIndex = options[i].nextNextLineIndex;
+                int optionIndex = i;
 
                 buttons[i].onClick.AddListener(() =>
                 {
+                    SaveSpecialChoiceIfNeeded(lineIndex, optionIndex);
                     HideButtons();
                     StartCoroutine(ChoiceFlow(nextIndex, nextNextIndex));
                 });
             }
-            else buttons[i].gameObject.SetActive(false);
+            else
+            {
+                buttons[i].gameObject.SetActive(false);
+            }
         }
 
         return true;
@@ -64,6 +74,25 @@ public class DialogueButtons : MonoBehaviour
         yield return npcScript.StartCoroutine(npcScript.PlayAtIndex(nextIndex));
 
         npcScript.QueueNextLineIndex(nextNextIndex);
+    }
+
+    private void SaveSpecialChoiceIfNeeded(int lineIndex, int optionIndex)
+    {
+        if (npcScript == null) return;
+
+        if (npcScript.sequenceToPlay == DialogueSequence.RestaurantMomConvo1)
+        {
+            if (optionIndex == 0)
+            {
+                PlayerPrefs.SetInt(MOM_RESPONSE_KEY, MOM_HOME);
+                PlayerPrefs.Save();
+            }
+            else if (optionIndex == 1)
+            {
+                PlayerPrefs.SetInt(MOM_RESPONSE_KEY, MOM_NOT_SAME);
+                PlayerPrefs.Save();
+            }
+        }
     }
 
     void HideButtons()

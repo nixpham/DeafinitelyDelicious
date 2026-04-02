@@ -59,8 +59,65 @@ MonoBehaviour:
     text: We should go visit your grandma, she has been waiting to see you
   - speakerId: mc
     text: I guess I will have to follow her
-  restaurantIntro2Lines: []
-  restaurantIntro3Lines: []
+  restaurantMomReminder1Lines:
+  - speakerId: mom
+    text: What are you waiting for, let's go!
+  grandmasHouse1Lines:
+  - speakerId: mc
+    text: "I walk into the living room in grandma\u2019s favorite spot."
+  - speakerId: mc
+    text: "She\u2019s rocking on her chair, staring towards the kitchen. When she
+      spots me, she smiles."
+  - speakerId: granny
+    text: When did you get here?
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  - speakerId: granny
+    text: Did you go see the old place?
+  - speakerId: mc
+    text: '{MOM_RESPONSE_LINE}'
+  - speakerId: granny
+    text: I have a gift for you
+  - speakerId: mc
+    text: What is it
+  - speakerId: mc
+    text: "It\u2019s all the knowledge I\u2019ve gained when I ran that place"
+  - speakerId: mc
+    text: What do you want me to do with it?
+  - speakerId: mc
+    text: Cook!
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  grandmasHouseGrandmaReminderLines:
+  - speakerId: Granny
+    text: I look forward to your cooking!
+  restaurantIntro2Lines:
+  - speakerId: mc
+    text: And just like that I was back here again
+  restaurantMomReminder2Lines:
+  - speakerId: mom
+    text: "I heard you\u2019re making grilled cheese for us! I\u2019m excited to
+      eat"
+  restaurantGrandmaReminder2Lines:
+  - speakerId: granny
+    text: Go go cook!
+  kitchenTutorialLines:
+  - speakerId: tutorial
+    text: Time to make your first dish!
+  - speakerId: tutorial
+    text: Time to make your first dish!
+  restaurantIntro3Lines:
+  - speakerId: granny
+    text: "It looks just like how I would\u2019ve made it"
+  - speakerId: mom
+    text: "It\u2019s very delicious"
+  mapEndDemoLines: []
   speakers:
   - id: mc
     displayName: You
@@ -74,8 +131,10 @@ MonoBehaviour:
     displayName: Granny
     portrait: {fileID: 21300000, guid: 1452cff74c38c604e8abd7e8043e0add, type: 3}
     defaultSide: 1
-  prologueChoices: []
-  restaurantIntro1Choices: []
+  - id: tutorial
+    displayName: Tutorial
+    portrait: {fileID: 0}
+    defaultSide: 0
   restaurantMomConvo1Choices:
   - options:
     - text: Just like how I remembered!
@@ -88,6 +147,5 @@ MonoBehaviour:
   - options: []
   - options: []
   - options: []
-  restaurantIntro2Choices: []
-  restaurantIntro3Choices: []
+  grandmasHouse1Choices: []
   typingSpeed: 0.08

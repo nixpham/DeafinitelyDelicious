@@ -10,8 +10,15 @@ public enum DialogueSequence
     Prologue,
     RestaurantIntro1,
     RestaurantMomConvo1,
+    RestaurantMomReminder1,
+    GrandmasHouse1,
+    GrandmasHouseGrandmaReminder,
     RestaurantIntro2,
-    RestaurantIntro3
+    RestaurantMomReminder2,
+    RestaurantGrandmaReminder2,
+    KitchenTutorial,
+    RestaurantIntro3,
+    MapEndDemo
 }
 
 public class NPC : MonoBehaviour
@@ -74,6 +81,14 @@ public class NPC : MonoBehaviour
     public bool playOnce = false;
     public string playOnceId = "";
 
+    [Header("Scene Flow (optional)")]
+    [Tooltip("If true, NPC will auto-load restaurant after Prologue sequence ends. Recommended OFF if TutorialManager controls scenes.")]
+    public bool autoLoadRestaurantAfterPrologue = false;
+    public string restaurantSceneName = "RestaurantScene";
+
+    [Header("Text Tokens")]
+    public bool enableTextTokens = true;
+
     [SerializeField] private DialogueButtons dialogueButtons;
 
     // =========================
@@ -106,6 +121,8 @@ public class NPC : MonoBehaviour
     private bool hasQueuedNextIndex = false;
     private int queuedNextIndex = -1;
 
+    private const string MOM_RESPONSE_KEY = "MOM_RESPONSE";
+
     public void QueueNextLineIndex(int index)
     {
         hasQueuedNextIndex = true;
@@ -115,13 +132,13 @@ public class NPC : MonoBehaviour
     // =========================
     // UNITY
     // =========================
-    void Awake()
+    private void Awake()
     {
         BuildSpeakerLookup();
         CachePortraitPositions();
     }
 
-    void Start()
+    private void Start()
     {
         if (dialogueData == null) return;
         if (!autoStartInThisScene) return;
@@ -182,7 +199,10 @@ public class NPC : MonoBehaviour
         if (isTyping)
         {
             StopAllCoroutines();
-            dialogueText.SetText(currentFullText);
+
+            if (dialogueText != null)
+                dialogueText.SetText(currentFullText);
+
             isTyping = false;
             runNextLine = (!externallyPaused && !lastLineHadChoices);
             return;
@@ -196,15 +216,23 @@ public class NPC : MonoBehaviour
     // =========================
     // CORE FLOW
     // =========================
-    void StartDialogue()
+    private void StartDialogue()
     {
-        Debug.Log("timescale=" + Time.timeScale);
         if (dialogueData == null) return;
 
         if (playOnce && !string.IsNullOrWhiteSpace(playOnceId))
         {
             if (PlayerPrefs.GetInt(playOnceId, 0) == 1)
                 return;
+        }
+
+        currentDialogueLines = GetLinesForSequence(sequenceToPlay);
+        currentChoices = GetChoicesForSequence(sequenceToPlay);
+
+        if (currentDialogueLines == null || currentDialogueLines.Length == 0)
+        {
+            OnSequenceEnded?.Invoke(sequenceToPlay);
+            return;
         }
 
         NotifyDialogueStarted();
@@ -217,19 +245,16 @@ public class NPC : MonoBehaviour
         runNextLine = true;
         dialogueIndex = 0;
 
-        currentDialogueLines = GetLinesForSequence(sequenceToPlay);
-        currentChoices = GetChoicesForSequence(sequenceToPlay);
-
-        Debug.Log($"[NPC] StartDialogue seq={sequenceToPlay} lines={(currentDialogueLines == null ? -1 : currentDialogueLines.Length)} data={(dialogueData != null)} root={(dialogueRoot != null)}");
-
         if (dialogueRoot != null)
             dialogueRoot.SetActive(true);
+
+        OnDialogueIndexChanged?.Invoke(dialogueIndex);
 
         StopAllCoroutines();
         StartCoroutine(TypeLine());
     }
 
-    void NextLine()
+    private void NextLine()
     {
         if (hasQueuedNextIndex)
         {
@@ -242,7 +267,7 @@ public class NPC : MonoBehaviour
             dialogueIndex++;
         }
 
-        if (dialogueIndex < currentDialogueLines.Length)
+        if (currentDialogueLines != null && dialogueIndex < currentDialogueLines.Length)
         {
             OnDialogueIndexChanged?.Invoke(dialogueIndex);
             StartCoroutine(TypeLine());
@@ -253,7 +278,7 @@ public class NPC : MonoBehaviour
         }
     }
 
-    IEnumerator TypeLine()
+    private IEnumerator TypeLine()
     {
         isTyping = true;
 
@@ -266,7 +291,7 @@ public class NPC : MonoBehaviour
         ApplyNameFrame(line.speakerId);
         ApplyPortraitBump(line.speakerId);
 
-        currentFullText = line.text;
+        currentFullText = ResolveDialogueTokens(line.text ?? "");
 
         if (dialogueButtons != null)
         {
@@ -280,9 +305,11 @@ public class NPC : MonoBehaviour
 
         runNextLine = (!externallyPaused && !lastLineHadChoices);
 
-        foreach (char c in line.text)
+        for (int i = 0; i < currentFullText.Length; i++)
         {
-            dialogueText.text += c;
+            if (dialogueText != null)
+                dialogueText.text += currentFullText[i];
+
             yield return new WaitForSecondsRealtime(dialogueData.typingSpeed);
         }
 
@@ -290,7 +317,7 @@ public class NPC : MonoBehaviour
         runNextLine = (!externallyPaused && !lastLineHadChoices);
     }
 
-    void EndDialogue()
+    private void EndDialogue()
     {
         StopAllCoroutines();
         isDialogueActive = false;
@@ -314,8 +341,37 @@ public class NPC : MonoBehaviour
 
         OnSequenceEnded?.Invoke(sequenceToPlay);
 
-        if (SceneManager.GetActiveScene().name == "PrologueScene")
-            SceneManager.LoadScene("RestaurantScene");
+        if (autoLoadRestaurantAfterPrologue &&
+            SceneManager.GetActiveScene().name == "PrologueScene" &&
+            sequenceToPlay == DialogueSequence.Prologue)
+        {
+            SceneManager.LoadScene(restaurantSceneName);
+        }
+    }
+
+    // =========================
+    // TOKEN RESOLUTION
+    // =========================
+    private string ResolveDialogueTokens(string input)
+    {
+        if (!enableTextTokens || string.IsNullOrEmpty(input))
+            return input;
+
+        string output = input;
+
+        if (output.Contains("{MOM_RESPONSE_LINE}"))
+        {
+            int momResponse = PlayerPrefs.GetInt(MOM_RESPONSE_KEY, 0);
+
+            string replacement =
+                momResponse == 0
+                    ? "Yes I did, it still felt like home"
+                    : "Yeah, it doesn’t feel the same";
+
+            output = output.Replace("{MOM_RESPONSE_LINE}", replacement);
+        }
+
+        return output;
     }
 
     // =========================
@@ -326,10 +382,24 @@ public class NPC : MonoBehaviour
         switch (seq)
         {
             case DialogueSequence.Prologue: return dialogueData.prologueLines;
+
             case DialogueSequence.RestaurantIntro1: return dialogueData.restaurantIntro1Lines;
             case DialogueSequence.RestaurantMomConvo1: return dialogueData.restaurantMomConvo1Lines;
+            case DialogueSequence.RestaurantMomReminder1: return dialogueData.restaurantMomReminder1Lines;
+
+            case DialogueSequence.GrandmasHouse1: return dialogueData.grandmasHouse1Lines;
+            case DialogueSequence.GrandmasHouseGrandmaReminder: return dialogueData.grandmasHouseGrandmaReminderLines;
+
             case DialogueSequence.RestaurantIntro2: return dialogueData.restaurantIntro2Lines;
+            case DialogueSequence.RestaurantMomReminder2: return dialogueData.restaurantMomReminder2Lines;
+            case DialogueSequence.RestaurantGrandmaReminder2: return dialogueData.restaurantGrandmaReminder2Lines;
+
+            case DialogueSequence.KitchenTutorial: return dialogueData.kitchenTutorialLines;
+
             case DialogueSequence.RestaurantIntro3: return dialogueData.restaurantIntro3Lines;
+
+            case DialogueSequence.MapEndDemo: return dialogueData.mapEndDemoLines;
+
             default: return new DialogueLine[0];
         }
     }
@@ -338,28 +408,29 @@ public class NPC : MonoBehaviour
     {
         switch (seq)
         {
-            case DialogueSequence.Prologue: return dialogueData.prologueChoices;
-            case DialogueSequence.RestaurantIntro1: return dialogueData.restaurantIntro1Choices;
-            case DialogueSequence.RestaurantMomConvo1: return dialogueData.restaurantMomConvo1Choices;
-            case DialogueSequence.RestaurantIntro2: return dialogueData.restaurantIntro2Choices;
-            case DialogueSequence.RestaurantIntro3: return dialogueData.restaurantIntro3Choices;
-            default: return null;
+            case DialogueSequence.RestaurantMomConvo1:
+                return dialogueData.restaurantMomConvo1Choices;
+            default:
+                return null;
         }
     }
 
     // =========================
     // UI HELPERS
     // =========================
-    void BuildSpeakerLookup()
+    private void BuildSpeakerLookup()
     {
         speakers.Clear();
         if (dialogueData == null || dialogueData.speakers == null) return;
+
         foreach (var s in dialogueData.speakers)
+        {
             if (!string.IsNullOrWhiteSpace(s.id))
                 speakers[s.id] = s;
+        }
     }
 
-    void CachePortraitPositions()
+    private void CachePortraitPositions()
     {
         if (momPortrait != null)
         {
@@ -374,15 +445,17 @@ public class NPC : MonoBehaviour
         }
     }
 
-    void HideNPCPortraits()
+    private void HideNPCPortraits()
     {
         if (momPortraitObj != null) momPortraitObj.SetActive(false);
         if (grannyPortraitObj != null) grannyPortraitObj.SetActive(false);
     }
 
-    void IntroduceIfNeeded(string speakerId)
+    private void IntroduceIfNeeded(string speakerId)
     {
+        if (string.IsNullOrWhiteSpace(speakerId)) return;
         if (introduced.Contains(speakerId)) return;
+
         introduced.Add(speakerId);
 
         if (speakerId == "mom" && momPortraitObj != null)
@@ -392,7 +465,7 @@ public class NPC : MonoBehaviour
             grannyPortraitObj.SetActive(true);
     }
 
-    void ApplyNameFrame(string speakerId)
+    private void ApplyNameFrame(string speakerId)
     {
         string displayName = speakers.TryGetValue(speakerId, out var s)
             ? s.displayName
@@ -409,7 +482,7 @@ public class NPC : MonoBehaviour
             rightNameText.SetText(displayName);
     }
 
-    void ApplyPortraitBump(string speakerId)
+    private void ApplyPortraitBump(string speakerId)
     {
         if (speakerId == "mom" && momRT != null)
             StartCoroutine(BumpTo(momRT, momBasePos + Vector2.up * bumpAmount));
@@ -418,7 +491,7 @@ public class NPC : MonoBehaviour
             StartCoroutine(BumpTo(grannyRT, grannyBasePos + Vector2.up * bumpAmount));
     }
 
-    IEnumerator BumpTo(RectTransform rt, Vector2 target)
+    private IEnumerator BumpTo(RectTransform rt, Vector2 target)
     {
         while (Vector2.Distance(rt.anchoredPosition, target) > 0.5f)
         {
