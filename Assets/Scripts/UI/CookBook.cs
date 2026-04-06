@@ -33,6 +33,7 @@ public class CookBook : MonoBehaviour
     [SerializeField] private GameObject dishesHubPage;
     [SerializeField] private GameObject wordsHubPage;
     [SerializeField] private GameObject peopleHubPage;
+    [SerializeField] private Transform pagesRoot;
 
     [Header("Nav Arrows (auto-hidden)")]
     [SerializeField] private Button leftArrowButton;   // back/prev
@@ -54,6 +55,9 @@ public class CookBook : MonoBehaviour
 
     private void Awake()
     {
+        ResolvePagesRoot();
+        EnsureTabButtonsReceiveClicks();
+
         if (cookBookRoot) cookBookRoot.SetActive(false);
 
         if (helpPopupPanel) helpPopupPanel.SetActive(false);
@@ -100,6 +104,7 @@ public class CookBook : MonoBehaviour
         CookBookOpen = true;
 
         SwitchTab(Tab.Dishes);
+        BringOverlayControlsToFront();
     }
 
     public void CloseCookBook()
@@ -126,7 +131,7 @@ public class CookBook : MonoBehaviour
         inRecipeSection = false;
         pageIndex = 0;
 
-        HideAllPages();
+        HideAllPageObjects();
 
         GameObject hub = tab switch
         {
@@ -139,10 +144,11 @@ public class CookBook : MonoBehaviour
         currentSectionPages.Clear();
         if (hub != null)
         {
-            hub.SetActive(true);
+            ActivatePageChain(hub);
             currentSectionPages.Add(hub); // hub is a 1-page section
         }
 
+        BringOverlayControlsToFront();
         UpdateNav();
     }
 
@@ -155,7 +161,7 @@ public class CookBook : MonoBehaviour
         var recipe = recipes.Find(r => r.recipeName == recipeName);
         if (recipe == null || recipe.pages == null || recipe.pages.Count == 0) return;
 
-        HideAllPages();
+        HideAllPageObjects();
 
         inRecipeSection = true;
         pageIndex = 0;
@@ -163,8 +169,9 @@ public class CookBook : MonoBehaviour
         currentSectionPages = recipe.pages;
 
         // Show recipe page 0
-        if (currentSectionPages[0]) currentSectionPages[0].SetActive(true);
+        if (currentSectionPages[0]) ActivatePageChain(currentSectionPages[0]);
 
+        BringOverlayControlsToFront();
         UpdateNav();
     }
 
@@ -196,10 +203,12 @@ public class CookBook : MonoBehaviour
         newIndex = Mathf.Clamp(newIndex, 0, Mathf.Max(0, currentSectionPages.Count - 1));
         if (newIndex == pageIndex) return;
 
-        if (currentSectionPages[pageIndex]) currentSectionPages[pageIndex].SetActive(false);
         pageIndex = newIndex;
-        if (currentSectionPages[pageIndex]) currentSectionPages[pageIndex].SetActive(true);
 
+        HideAllPageObjects();
+        if (currentSectionPages[pageIndex]) ActivatePageChain(currentSectionPages[pageIndex]);
+
+        BringOverlayControlsToFront();
         UpdateNav();
     }
 
@@ -241,6 +250,134 @@ public class CookBook : MonoBehaviour
             foreach (var p in r.pages)
                 if (p) p.SetActive(false);
         }
+    }
+
+    private void HideAllPageObjects()
+    {
+        HideAllPages();
+
+        if (pagesRoot == null) return;
+
+        for (int i = 0; i < pagesRoot.childCount; i++)
+        {
+            var child = pagesRoot.GetChild(i);
+            if (IsPersistentPagesChild(child)) continue;
+            child.gameObject.SetActive(false);
+        }
+    }
+
+    private void ActivatePageChain(GameObject page)
+    {
+        if (page == null) return;
+
+        if (pagesRoot == null)
+        {
+            page.SetActive(true);
+            return;
+        }
+
+        var current = page.transform;
+        while (current != null)
+        {
+            current.gameObject.SetActive(true);
+            if (current == pagesRoot) break;
+            current = current.parent;
+        }
+    }
+
+    private void ResolvePagesRoot()
+    {
+        if (pagesRoot != null) return;
+
+        Transform sharedParent = null;
+        var hubs = new[] { dishesHubPage, wordsHubPage, peopleHubPage };
+
+        foreach (var hub in hubs)
+        {
+            if (hub == null) continue;
+
+            if (sharedParent == null)
+            {
+                sharedParent = hub.transform.parent;
+                continue;
+            }
+
+            if (hub.transform.parent != sharedParent)
+                return;
+        }
+
+        pagesRoot = sharedParent;
+    }
+
+    private void EnsureTabButtonsReceiveClicks()
+    {
+        EnsureButtonGraphic(dishesTabButton);
+        EnsureButtonGraphic(wordsTabButton);
+        EnsureButtonGraphic(peopleTabButton);
+    }
+
+    private void EnsureButtonGraphic(Button button)
+    {
+        if (button == null) return;
+
+        var graphic = button.GetComponent<Graphic>();
+        if (graphic == null)
+        {
+            var image = button.gameObject.AddComponent<Image>();
+            image.color = new Color(1f, 1f, 1f, 0f);
+            image.raycastTarget = true;
+            graphic = image;
+        }
+        else
+        {
+            graphic.raycastTarget = true;
+        }
+
+        if (button.targetGraphic == null)
+            button.targetGraphic = graphic;
+    }
+
+    private void BringOverlayControlsToFront()
+    {
+        Transform overlayRoot = cookBookRoot != null ? cookBookRoot.transform : null;
+
+        BringRootToFront(closeButton != null ? closeButton.transform : null, overlayRoot);
+        BringRootToFront(dishesTabButton != null ? dishesTabButton.transform : null, overlayRoot);
+        BringRootToFront(helpBlockerButton != null ? helpBlockerButton.transform : null, overlayRoot);
+        BringRootToFront(helpPopupPanel != null ? helpPopupPanel.transform : null, overlayRoot);
+
+        BringRootToFront(leftArrowButton != null ? leftArrowButton.transform : null, pagesRoot);
+        BringRootToFront(rightArrowButton != null ? rightArrowButton.transform : null, pagesRoot);
+    }
+
+    private void BringRootToFront(Transform target, Transform parentRoot)
+    {
+        Transform root = GetRootBelowParent(target, parentRoot);
+        if (root != null)
+            root.SetAsLastSibling();
+    }
+
+    private Transform GetRootBelowParent(Transform target, Transform parentRoot)
+    {
+        if (target == null) return null;
+        if (parentRoot == null) return target;
+
+        Transform root = target;
+        while (root.parent != null && root.parent != parentRoot)
+            root = root.parent;
+
+        return root;
+    }
+
+    private bool IsPersistentPagesChild(Transform child)
+    {
+        if (child == null) return false;
+
+        Transform leftRoot = GetRootBelowParent(leftArrowButton != null ? leftArrowButton.transform : null, pagesRoot);
+        if (leftRoot == child) return true;
+
+        Transform rightRoot = GetRootBelowParent(rightArrowButton != null ? rightArrowButton.transform : null, pagesRoot);
+        return rightRoot == child;
     }
 
     // ---------- Help Popup (modal) ----------
