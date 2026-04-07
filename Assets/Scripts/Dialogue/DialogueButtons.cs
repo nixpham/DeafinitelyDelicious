@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Collections;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class DialogueButtons : MonoBehaviour
@@ -9,42 +9,30 @@ public class DialogueButtons : MonoBehaviour
     public Button[] buttons;
     public TMP_Text[] buttonText;
 
-    void Start()
-    {
-        HideButtons();
-    }
+    private DialogueChoice[] choicesSource;
 
-    /// <summary>
-    /// Show choices for a specific dialogue line index.
-    /// NPC should call this using the line index that just finished typing.
-    /// </summary>
+    private const string MOM_RESPONSE_KEY = "MOM_RESPONSE";
+    private const int MOM_HOME = 0;
+    private const int MOM_NOT_SAME = 1;
+
+    void Start() => HideButtons();
+
+    public void SetChoicesSource(DialogueChoice[] source) => choicesSource = source;
+
     public bool SetTextButton(int lineIndex)
     {
-        if (npcScript == null || npcScript.dialogueData == null)
-        {
-            Debug.LogWarning("[DialogueButtons] npcScript/dialogueData not assigned.");
-            HideButtons();
-            return false;
-        }
-
-        var choicesArr = npcScript.dialogueData.choices;
-
-        Debug.Log($"[DialogueButtons] SetTextButton(lineIndex={lineIndex}) " +
-                  $"choicesNull={(choicesArr == null)} " +
-                  $"choicesLen={(choicesArr != null ? choicesArr.Length : -1)}");
-
-        if (choicesArr == null ||
+        if (choicesSource == null ||
             lineIndex < 0 ||
-            choicesArr.Length <= lineIndex ||
-            choicesArr[lineIndex] == null ||
-            choicesArr[lineIndex].options == null ||
-            choicesArr[lineIndex].options.Length == 0)
+            lineIndex >= choicesSource.Length ||
+            choicesSource[lineIndex] == null ||
+            choicesSource[lineIndex].options == null ||
+            choicesSource[lineIndex].options.Length == 0)
         {
             HideButtons();
             return false;
         }
 
-        DialogueOption[] options = choicesArr[lineIndex].options;
+        var options = choicesSource[lineIndex].options;
 
         for (int i = 0; i < buttons.Length; i++)
         {
@@ -61,11 +49,13 @@ public class DialogueButtons : MonoBehaviour
 
                 int nextIndex = options[i].nextLineIndex;
                 int nextNextIndex = options[i].nextNextLineIndex;
+                int optionIndex = i;
 
                 buttons[i].onClick.AddListener(() =>
                 {
+                    SaveSpecialChoiceIfNeeded(lineIndex, optionIndex);
                     HideButtons();
-                    StartCoroutine(PlayDialogue(nextIndex, nextNextIndex));
+                    StartCoroutine(ChoiceFlow(nextIndex, nextNextIndex));
                 });
             }
             else
@@ -77,49 +67,37 @@ public class DialogueButtons : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Backwards compatible overload (not recommended).
-    /// Uses npcScript.dialogueIndex and can be wrong if NPC increments early.
-    /// </summary>
-    public bool SetTextButton()
+    IEnumerator ChoiceFlow(int nextIndex, int nextNextIndex)
     {
-        return SetTextButton(npcScript != null ? npcScript.dialogueIndex : -1);
+        HideButtons();
+
+        yield return npcScript.StartCoroutine(npcScript.PlayAtIndex(nextIndex));
+
+        npcScript.QueueNextLineIndex(nextNextIndex);
     }
 
-    public bool AnyButtonActive()
+    private void SaveSpecialChoiceIfNeeded(int lineIndex, int optionIndex)
     {
-        foreach (var button in buttons)
+        if (npcScript == null) return;
+
+        if (npcScript.sequenceToPlay == DialogueSequence.RestaurantMomConvo1)
         {
-            if (button != null && button.gameObject.activeSelf)
-                return true;
+            if (optionIndex == 0)
+            {
+                PlayerPrefs.SetInt(MOM_RESPONSE_KEY, MOM_HOME);
+                PlayerPrefs.Save();
+            }
+            else if (optionIndex == 1)
+            {
+                PlayerPrefs.SetInt(MOM_RESPONSE_KEY, MOM_NOT_SAME);
+                PlayerPrefs.Save();
+            }
         }
-        return false;
     }
 
     void HideButtons()
     {
-        foreach (var button in buttons)
-        {
-            if (button != null)
-                button.gameObject.SetActive(false);
-        }
-    }
-
-    private IEnumerator PlayDialogue(int nextIndex, int nextNextIndex)
-    {
-        if (npcScript == null)
-            yield break;
-
-        // Play the immediate branch response line
-        yield return StartCoroutine(npcScript.PlayAtIndex(nextIndex));
-
-        // Allow continuing (NPC will block advancement itself if it shows more choices)
-        npcScript.runNextLine = true;
-
-        // Wait for a REAL dialogue-box click, not any mouse click
-        int startClicks = npcScript.DialogueBoxClickCount;
-        yield return new WaitUntil(() => npcScript.DialogueBoxClickCount > startClicks);
-
-        npcScript.ResumeAfterClick(nextNextIndex);
+        foreach (var b in buttons)
+            if (b != null) b.gameObject.SetActive(false);
     }
 }

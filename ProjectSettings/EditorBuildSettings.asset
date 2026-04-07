@@ -26,4 +26,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GroceryScene.unity
     guid: 08dbad1a75e41bb46bc5f89d960490d5
+  - enabled: 1
+    path: Assets/Scenes/GrandmaHouse.unity
+    guid: 6ca3b75703ed03f4d9bf0165c2a488dd
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
