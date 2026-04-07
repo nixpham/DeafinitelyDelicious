@@ -81,7 +81,7 @@ MonoBehaviour:
   - speakerId: mc
     text: '*Granny gifts you a worn-out book*'
   - speakerId: mc
-    text: What is it
+    text: What is it?
   - speakerId: granny
     text: "It\u2019s all the knowledge I\u2019ve gained when I ran that place"
   - speakerId: mc
