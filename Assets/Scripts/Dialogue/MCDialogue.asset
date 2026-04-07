@@ -77,7 +77,7 @@ MonoBehaviour:
   - speakerId: mc
     text: '{MOM_RESPONSE_LINE}'
   - speakerId: granny
-    text: I have a gift for you
+    text: Well, I have a gift for you!
   - speakerId: mc
     text: '*Granny gifts you a worn-out book*'
   - speakerId: mc
@@ -122,10 +122,15 @@ MonoBehaviour:
     text: "Let\u2019s try to sign bread to Grandma"
   - speakerId: granny
     text: Let me know what you need
-  - speakerId: granny
-    text: Yes! Bread, here you go. What else?
-  - speakerId: mc
-    text: Great! Now continue with the other two ingredients!
+  - speakerId: tutorial
+    text: Usually, you would sign to Grandma or a shop to collect ingredients in
+      this game
+  - speakerId: tutorial
+    text: Unfortunately, this is still a work in progress, so you will automatically
+      get the ingredients
+  - speakerId: tutorial
+    text: Feel free to still learn the signs from the cookbook though! Click done
+      when ready to progress.
   - speakerId: mc
     text: I think that's everything
   - speakerId: granny

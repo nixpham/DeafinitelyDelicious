@@ -1176,14 +1176,13 @@ MonoBehaviour:
   tutorialStepKey: DEMO_TUTORIAL_STEP
   grandmaPauseForCookbookAfterIndex: 13
   grandmaResumeAfterCookbookIndex: 14
-  grandmaPauseForGrilledCheeseAfterIndex: 14
   grandmaResumeAfterGrilledCheeseIndex: 15
   grandmaPauseForCookbookReopenAfterIndex: 18
   grandmaResumeAfterCookbookReopenIndex: 19
   grandmaPauseForBreadClickAfterIndex: 20
   grandmaResumeAfterStudySessionIndex: 21
   grandmaPauseForSignButtonAfterIndex: 22
-  grandmaPauseForRemainingIngredientCookbookAfterIndex: 24
+  grandmaResumeAfterSignDemoIndex: 27
 --- !u!4 &1032190433
 Transform:
   m_ObjectHideFlags: 0
@@ -1693,8 +1692,10 @@ MonoBehaviour:
   breadButton: {fileID: 0}
   breadHighlight: {fileID: 0}
   studySessionRoot: {fileID: 0}
+  studySessionPopup: {fileID: 0}
   signButton: {fileID: 0}
   signEngineRoot: {fileID: 0}
+  signDoneButton: {fileID: 0}
   giftPopup: {fileID: 0}
 --- !u!114 &1419583954 stripped
 MonoBehaviour:
