@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07be48cdbd94e614cadd762650e65eab, type: 3}
+  m_Name: NewStorage
+  m_EditorClassIdentifier: Assembly-CSharp::Storage
+  fridge:
+  - shelf:
+    - sprite: {fileID: 21300000, guid: 6cef7fd6f7e0b7342815f144c89e3f8a, type: 3}
+      sign: 
+    - sprite: {fileID: 21300000, guid: 4e996a068b02ecb4c9801af468fb2f0f, type: 3}
+      sign: 
+    - sprite: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
+      sign: 
+  - shelf: []
+  drawer: []
+  lowerCabinet: []
+  shelf: []
