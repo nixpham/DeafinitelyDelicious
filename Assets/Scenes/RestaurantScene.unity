@@ -659,6 +659,10 @@ PrefabInstance:
       propertyPath: grannyPortraitObj
       value: 
       objectReference: {fileID: 1750354186}
+    - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
+      propertyPath: autoStartInThisScene
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6149524103637977401, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -73.99274
@@ -1174,16 +1178,24 @@ MonoBehaviour:
   grandmaSceneName: GrandmaHouse
   kitchenSceneName: KitchenScene
   tutorialStepKey: DEMO_TUTORIAL_STEP
+  restaurantIntro1SeenKey: DEMO_RESTAURANT_INTRO1_SEEN
+  restaurantIntro2SeenKey: DEMO_RESTAURANT_INTRO2_SEEN
+  kitchenTutorialSeenKey: DEMO_KITCHEN_TUTORIAL_SEEN
+  grandmaVisualOverride: {fileID: 0}
   grandmaPauseForCookbookAfterIndex: 13
   grandmaResumeAfterCookbookIndex: 14
-  grandmaPauseForGrilledCheeseAfterIndex: 14
+  grandmaPauseForGrilledCheeseAfterIndex: 16
   grandmaResumeAfterGrilledCheeseIndex: 15
+  grandmaCloseCookbookOnLoveLineIndex: 19
   grandmaPauseForCookbookReopenAfterIndex: 18
   grandmaResumeAfterCookbookReopenIndex: 19
   grandmaPauseForBreadClickAfterIndex: 20
   grandmaResumeAfterStudySessionIndex: 21
   grandmaPauseForSignButtonAfterIndex: 22
-  grandmaPauseForRemainingIngredientCookbookAfterIndex: 24
+  grandmaResumeAfterSignButtonIndex: 27
+  grandmaPauseForSignDoneAfterIndex: 28
+  grandmaResumeAfterSignDoneIndex: 29
+  grandmaPauseForBackButtonAfterIndex: 30
 --- !u!4 &1032190433
 Transform:
   m_ObjectHideFlags: 0
@@ -1681,7 +1693,7 @@ MonoBehaviour:
   restaurantGrandmaButton: {fileID: 1308606202}
   restaurantGrandmaHighlight: {fileID: 0}
   mapButton: {fileID: 1514842945}
-  kitchenButton: {fileID: 0}
+  kitchenButton: {fileID: 181339891}
   grandmaHouseSprite: {fileID: 0}
   backButton: {fileID: 0}
   cookbookButton: {fileID: 0}
@@ -1693,8 +1705,10 @@ MonoBehaviour:
   breadButton: {fileID: 0}
   breadHighlight: {fileID: 0}
   studySessionRoot: {fileID: 0}
+  studySessionPopup: {fileID: 0}
   signButton: {fileID: 0}
   signEngineRoot: {fileID: 0}
+  signDoneButton: {fileID: 0}
   giftPopup: {fileID: 0}
 --- !u!114 &1419583954 stripped
 MonoBehaviour:
@@ -3543,7 +3557,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af1545d57aa1f4e479c4af328872d123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _kitchen: {fileID: 181339891}
+  _kitchen: {fileID: 0}
   _map: {fileID: 1514842945}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

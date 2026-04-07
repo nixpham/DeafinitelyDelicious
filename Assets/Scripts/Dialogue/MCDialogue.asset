@@ -77,7 +77,7 @@ MonoBehaviour:
   - speakerId: mc
     text: '{MOM_RESPONSE_LINE}'
   - speakerId: granny
-    text: I have a gift for you
+    text: Well, I have a gift for you!
   - speakerId: mc
     text: '*Granny gifts you a worn-out book*'
   - speakerId: mc
@@ -122,10 +122,15 @@ MonoBehaviour:
     text: "Let\u2019s try to sign bread to Grandma"
   - speakerId: granny
     text: Let me know what you need
-  - speakerId: granny
-    text: Yes! Bread, here you go. What else?
-  - speakerId: mc
-    text: Great! Now continue with the other two ingredients!
+  - speakerId: tutorial
+    text: Usually, you would sign to Grandma or a shop to collect ingredients in
+      this game
+  - speakerId: tutorial
+    text: Unfortunately, this is still a work in progress, so you will automatically
+      get the ingredients
+  - speakerId: tutorial
+    text: Feel free to still learn the signs from the cookbook though! Click done
+      when ready to progress.
   - speakerId: mc
     text: I think that's everything
   - speakerId: granny
@@ -146,6 +151,25 @@ MonoBehaviour:
   kitchenTutorialLines:
   - speakerId: tutorial
     text: Time to make your first dish!
+  - speakerId: tutorial
+    text: In the kitchen, there'll be several storage areas that you can keep your
+      ingredients and tools organized in!
+  - speakerId: tutorial
+    text: You can scroll around the kitchen to find them
+  - speakerId: tutorial
+    text: Currently, these are a work in progress, though, so you won't be needing
+      to open and collect items from them
+  - speakerId: tutorial
+    text: Although you would usually sign to collect items from these storage areas,
+      the items will auto appear in the kitchen during this demo
+  - speakerId: tutorial
+    text: You'll need to click on the correct combination of items to begin a cooking
+      minigame step!
+  - speakerId: tutorial
+    text: Refer to your cookbook's recipe pages to see the items required for each
+      step
+  - speakerId: tutorial
+    text: Good luck on your grilled cheese!
   restaurantIntro3Lines:
   - speakerId: granny
     text: "It looks just like how I would\u2019ve made it"

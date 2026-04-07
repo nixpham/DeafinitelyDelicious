@@ -54,10 +54,12 @@ public class TutorialSceneRefs : MonoBehaviour
     public GameObject breadHighlight;
 
     public GameObject studySessionRoot;
+    public StudySessionPopup studySessionPopup;
 
     [Header("Signing Flow")]
     public Button signButton;
     public GameObject signEngineRoot;
+    public Button signDoneButton;
 
     [Header("Optional Popup")]
     public GameObject giftPopup;
