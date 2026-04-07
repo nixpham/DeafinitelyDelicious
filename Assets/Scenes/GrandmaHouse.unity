@@ -728,7 +728,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &399634593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3013,7 +3013,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1649897098
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3446,6 +3446,9 @@ MonoBehaviour:
   grandmaSceneName: GrandmaHouse
   kitchenSceneName: KitchenScene
   tutorialStepKey: DEMO_TUTORIAL_STEP
+  restaurantIntro1SeenKey: DEMO_RESTAURANT_INTRO1_SEEN
+  restaurantIntro2SeenKey: DEMO_RESTAURANT_INTRO2_SEEN
+  kitchenTutorialSeenKey: DEMO_KITCHEN_TUTORIAL_SEEN
   grandmaVisualOverride: {fileID: 0}
   grandmaPauseForCookbookAfterIndex: 14
   grandmaResumeAfterCookbookIndex: 16
@@ -3458,6 +3461,9 @@ MonoBehaviour:
   grandmaResumeAfterStudySessionIndex: 25
   grandmaPauseForSignButtonAfterIndex: 25
   grandmaResumeAfterSignButtonIndex: 27
+  grandmaPauseForSignDoneAfterIndex: 28
+  grandmaResumeAfterSignDoneIndex: 30
+  grandmaPauseForBackButtonAfterIndex: 30
 --- !u!4 &1837380549
 Transform:
   m_ObjectHideFlags: 0

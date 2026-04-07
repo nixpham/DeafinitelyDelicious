@@ -151,6 +151,25 @@ MonoBehaviour:
   kitchenTutorialLines:
   - speakerId: tutorial
     text: Time to make your first dish!
+  - speakerId: tutorial
+    text: In the kitchen, there'll be several storage areas that you can keep your
+      ingredients and tools organized in!
+  - speakerId: tutorial
+    text: You can scroll around the kitchen to find them
+  - speakerId: tutorial
+    text: Currently, these are a work in progress, though, so you won't be needing
+      to open and collect items from them
+  - speakerId: tutorial
+    text: Although you would usually sign to collect items from these storage areas,
+      the items will auto appear in the kitchen during this demo
+  - speakerId: tutorial
+    text: You'll need to click on the correct combination of items to begin a cooking
+      minigame step!
+  - speakerId: tutorial
+    text: Refer to your cookbook's recipe pages to see the items required for each
+      step
+  - speakerId: tutorial
+    text: Good luck on your grilled cheese!
   restaurantIntro3Lines:
   - speakerId: granny
     text: "It looks just like how I would\u2019ve made it"

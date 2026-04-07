@@ -659,6 +659,10 @@ PrefabInstance:
       propertyPath: grannyPortraitObj
       value: 
       objectReference: {fileID: 1750354186}
+    - target: {fileID: 5966986548543225597, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
+      propertyPath: autoStartInThisScene
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6149524103637977401, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -73.99274
@@ -1174,15 +1178,24 @@ MonoBehaviour:
   grandmaSceneName: GrandmaHouse
   kitchenSceneName: KitchenScene
   tutorialStepKey: DEMO_TUTORIAL_STEP
+  restaurantIntro1SeenKey: DEMO_RESTAURANT_INTRO1_SEEN
+  restaurantIntro2SeenKey: DEMO_RESTAURANT_INTRO2_SEEN
+  kitchenTutorialSeenKey: DEMO_KITCHEN_TUTORIAL_SEEN
+  grandmaVisualOverride: {fileID: 0}
   grandmaPauseForCookbookAfterIndex: 13
   grandmaResumeAfterCookbookIndex: 14
+  grandmaPauseForGrilledCheeseAfterIndex: 16
   grandmaResumeAfterGrilledCheeseIndex: 15
+  grandmaCloseCookbookOnLoveLineIndex: 19
   grandmaPauseForCookbookReopenAfterIndex: 18
   grandmaResumeAfterCookbookReopenIndex: 19
   grandmaPauseForBreadClickAfterIndex: 20
   grandmaResumeAfterStudySessionIndex: 21
   grandmaPauseForSignButtonAfterIndex: 22
-  grandmaResumeAfterSignDemoIndex: 27
+  grandmaResumeAfterSignButtonIndex: 27
+  grandmaPauseForSignDoneAfterIndex: 28
+  grandmaResumeAfterSignDoneIndex: 29
+  grandmaPauseForBackButtonAfterIndex: 30
 --- !u!4 &1032190433
 Transform:
   m_ObjectHideFlags: 0
