@@ -17,6 +17,13 @@ public class CookBook : MonoBehaviour
         public List<GameObject> pages = new();
     }
 
+    [Serializable]
+    public class IngredientStudyButton
+    {
+        public string signName;
+        public Button ingredientButton;
+    }
+
     [Header("Root")]
     [SerializeField] private GameObject cookBookRoot;
 
@@ -35,21 +42,25 @@ public class CookBook : MonoBehaviour
     [SerializeField] private GameObject peopleHubPage;
     [SerializeField] private Transform pagesRoot;
 
-    [Header("Nav Arrows (auto-hidden)")]
-    [SerializeField] private Button leftArrowButton;   // back/prev
-    [SerializeField] private Button rightArrowButton;  // next
+    [Header("Nav Arrows")]
+    [SerializeField] private Button leftArrowButton;
+    [SerializeField] private Button rightArrowButton;
 
-    [Header("Recipes (expandable)")]
+    [Header("Recipes")]
     [SerializeField] private List<RecipeSection> recipes = new();
 
     [Header("Help Popup (modal)")]
     [SerializeField] private Button helpButton;
     [SerializeField] private GameObject helpPopupPanel;
-    [SerializeField] private Button helpBlockerButton; // fullscreen invisible button
+    [SerializeField] private Button helpBlockerButton;
+
+    [Header("Study Session")]
+    [SerializeField] private StudySessionPopup studySessionPopup;
+    [SerializeField] private List<IngredientStudyButton> ingredientStudyButtons = new();
 
     private Tab currentTab = Tab.Dishes;
 
-    private List<GameObject> currentSectionPages = new(); // hub (1) or recipe (2-3)
+    private List<GameObject> currentSectionPages = new();
     private bool inRecipeSection = false;
     private int pageIndex = 0;
 
@@ -58,47 +69,71 @@ public class CookBook : MonoBehaviour
         ResolvePagesRoot();
         EnsureTabButtonsReceiveClicks();
 
-        if (cookBookRoot) cookBookRoot.SetActive(false);
+        if (cookBookRoot != null)
+            cookBookRoot.SetActive(false);
 
-        if (helpPopupPanel) helpPopupPanel.SetActive(false);
-        if (helpBlockerButton) helpBlockerButton.gameObject.SetActive(false);
+        if (helpPopupPanel != null)
+            helpPopupPanel.SetActive(false);
+
+        if (helpBlockerButton != null)
+            helpBlockerButton.gameObject.SetActive(false);
     }
 
     private void Start()
     {
-        // Open/close
-        if (openCookbookButton) openCookbookButton.onClick.AddListener(OpenCookBook);
-        if (closeButton) closeButton.onClick.AddListener(CloseCookBook);
+        if (openCookbookButton != null)
+            openCookbookButton.onClick.AddListener(OpenCookBook);
 
-        // Tabs reset to hub
-        if (dishesTabButton) dishesTabButton.onClick.AddListener(() => SwitchTab(Tab.Dishes));
-        if (wordsTabButton)  wordsTabButton.onClick.AddListener(() => SwitchTab(Tab.Words));
-        if (peopleTabButton) peopleTabButton.onClick.AddListener(() => SwitchTab(Tab.People));
+        if (closeButton != null)
+            closeButton.onClick.AddListener(CloseCookBook);
 
-        // Nav
-        if (leftArrowButton) leftArrowButton.onClick.AddListener(OnLeftArrow);
-        if (rightArrowButton) rightArrowButton.onClick.AddListener(OnRightArrow);
+        if (dishesTabButton != null)
+            dishesTabButton.onClick.AddListener(() => SwitchTab(Tab.Dishes));
 
-        // Help (modal)
-        if (helpButton) helpButton.onClick.AddListener(OpenHelp);
-        if (helpBlockerButton) helpBlockerButton.onClick.AddListener(CloseHelp);
+        if (wordsTabButton != null)
+            wordsTabButton.onClick.AddListener(() => SwitchTab(Tab.Words));
 
-        // Hook recipe buttons
-        foreach (var r in recipes)
+        if (peopleTabButton != null)
+            peopleTabButton.onClick.AddListener(() => SwitchTab(Tab.People));
+
+        if (leftArrowButton != null)
+            leftArrowButton.onClick.AddListener(OnLeftArrow);
+
+        if (rightArrowButton != null)
+            rightArrowButton.onClick.AddListener(OnRightArrow);
+
+        if (helpButton != null)
+            helpButton.onClick.AddListener(OpenHelp);
+
+        if (helpBlockerButton != null)
+            helpBlockerButton.onClick.AddListener(CloseHelp);
+
+        foreach (var recipe in recipes)
         {
-            if (r.openButton == null) continue;
-            string nameCopy = r.recipeName;
-            r.openButton.onClick.AddListener(() => OpenRecipe(nameCopy));
+            if (recipe == null || recipe.openButton == null)
+                continue;
+
+            string recipeNameCopy = recipe.recipeName;
+            recipe.openButton.onClick.AddListener(() => OpenRecipe(recipeNameCopy));
         }
 
-        // Initialize to dishes hub (cookbook closed initially)
+        foreach (var ingredient in ingredientStudyButtons)
+        {
+            if (ingredient == null || ingredient.ingredientButton == null)
+                continue;
+
+            string signNameCopy = ingredient.signName;
+            ingredient.ingredientButton.onClick.AddListener(() => OpenStudySession(signNameCopy));
+        }
+
         SetToHub(Tab.Dishes);
         CloseHelp();
     }
 
     public void OpenCookBook()
     {
-        if (!cookBookRoot) return;
+        if (cookBookRoot == null)
+            return;
 
         cookBookRoot.SetActive(true);
         CookBookOpen = true;
@@ -109,17 +144,18 @@ public class CookBook : MonoBehaviour
 
     public void CloseCookBook()
     {
-        if (!cookBookRoot) return;
+        if (cookBookRoot == null)
+            return;
 
         CloseHelp();
         cookBookRoot.SetActive(false);
         CookBookOpen = false;
     }
 
-    // ---------- Tabs ----------
     private void SwitchTab(Tab tab)
     {
-        if (IsHelpOpen()) return;
+        if (IsHelpOpen())
+            return;
 
         currentTab = tab;
         SetToHub(tab);
@@ -127,58 +163,71 @@ public class CookBook : MonoBehaviour
 
     private void SetToHub(Tab tab)
     {
-        // Reset any recipe state
         inRecipeSection = false;
         pageIndex = 0;
+        currentSectionPages.Clear();
 
         HideAllPageObjects();
 
         GameObject hub = tab switch
         {
             Tab.Dishes => dishesHubPage,
-            Tab.Words  => wordsHubPage,
+            Tab.Words => wordsHubPage,
             Tab.People => peopleHubPage,
             _ => dishesHubPage
         };
 
-        currentSectionPages.Clear();
         if (hub != null)
         {
             ActivatePageChain(hub);
-            currentSectionPages.Add(hub); // hub is a 1-page section
+            currentSectionPages.Add(hub);
         }
 
         BringOverlayControlsToFront();
         UpdateNav();
     }
 
-    // ---------- Recipes ----------
     public void OpenRecipe(string recipeName)
     {
-        if (IsHelpOpen()) return;
-        if (currentTab != Tab.Dishes) return;
+        if (IsHelpOpen())
+            return;
 
-        var recipe = recipes.Find(r => r.recipeName == recipeName);
-        if (recipe == null || recipe.pages == null || recipe.pages.Count == 0) return;
+        if (currentTab != Tab.Dishes)
+            return;
+
+        RecipeSection recipe = recipes.Find(r => r.recipeName == recipeName);
+        if (recipe == null || recipe.pages == null || recipe.pages.Count == 0)
+            return;
+
+        inRecipeSection = false;
+        pageIndex = 0;
+        currentSectionPages.Clear();
 
         HideAllPageObjects();
 
         inRecipeSection = true;
+        currentSectionPages = new List<GameObject>(recipe.pages);
         pageIndex = 0;
 
-        currentSectionPages = recipe.pages;
-
-        // Show recipe page 0
-        if (currentSectionPages[0]) ActivatePageChain(currentSectionPages[0]);
+        if (currentSectionPages[0] != null)
+            ActivatePageChain(currentSectionPages[0]);
 
         BringOverlayControlsToFront();
         UpdateNav();
     }
 
-    // ---------- Navigation ----------
+    private void OpenStudySession(string signName)
+    {
+        if (studySessionPopup == null)
+            return;
+
+        studySessionPopup.OpenSingleSign(signName);
+    }
+
     private void OnLeftArrow()
     {
-        if (IsHelpOpen()) return;
+        if (IsHelpOpen())
+            return;
 
         if (inRecipeSection && pageIndex == 0)
         {
@@ -192,7 +241,8 @@ public class CookBook : MonoBehaviour
 
     private void OnRightArrow()
     {
-        if (IsHelpOpen()) return;
+        if (IsHelpOpen())
+            return;
 
         if (pageIndex < currentSectionPages.Count - 1)
             SetPage(pageIndex + 1);
@@ -201,12 +251,16 @@ public class CookBook : MonoBehaviour
     private void SetPage(int newIndex)
     {
         newIndex = Mathf.Clamp(newIndex, 0, Mathf.Max(0, currentSectionPages.Count - 1));
-        if (newIndex == pageIndex) return;
+
+        if (newIndex == pageIndex)
+            return;
 
         pageIndex = newIndex;
 
         HideAllPageObjects();
-        if (currentSectionPages[pageIndex]) ActivatePageChain(currentSectionPages[pageIndex]);
+
+        if (currentSectionPages[pageIndex] != null)
+            ActivatePageChain(currentSectionPages[pageIndex]);
 
         BringOverlayControlsToFront();
         UpdateNav();
@@ -214,41 +268,43 @@ public class CookBook : MonoBehaviour
 
     private void UpdateNav()
     {
-        int count = currentSectionPages?.Count ?? 0;
-        bool showArrows = count > 1;
+        bool showLeft = false;
+        bool showRight = false;
 
-        if (leftArrowButton)  leftArrowButton.gameObject.SetActive(showArrows);
-        if (rightArrowButton) rightArrowButton.gameObject.SetActive(showArrows);
+        if (inRecipeSection)
+        {
+            showLeft = true;
+            showRight = pageIndex < currentSectionPages.Count - 1;
+        }
 
-        if (!showArrows) return;
+        if (leftArrowButton != null)
+            leftArrowButton.gameObject.SetActive(showLeft);
 
-        // left enabled:
-        // - recipe page 0: enabled (acts as "back to dishes")
-        // - other pages: enabled if can go back
-        bool leftEnabled = inRecipeSection ? true : pageIndex > 0;
-
-        if (!inRecipeSection)
-            leftEnabled = pageIndex > 0;
-
-        bool rightEnabled = pageIndex < count - 1;
-
-        leftArrowButton.interactable = leftEnabled;
-        rightArrowButton.interactable = rightEnabled;
+        if (rightArrowButton != null)
+            rightArrowButton.gameObject.SetActive(showRight);
     }
 
     private void HideAllPages()
     {
-        // hubs
-        if (dishesHubPage) dishesHubPage.SetActive(false);
-        if (wordsHubPage)  wordsHubPage.SetActive(false);
-        if (peopleHubPage) peopleHubPage.SetActive(false);
+        if (dishesHubPage != null)
+            dishesHubPage.SetActive(false);
 
-        // recipe pages
-        foreach (var r in recipes)
+        if (wordsHubPage != null)
+            wordsHubPage.SetActive(false);
+
+        if (peopleHubPage != null)
+            peopleHubPage.SetActive(false);
+
+        foreach (var recipe in recipes)
         {
-            if (r.pages == null) continue;
-            foreach (var p in r.pages)
-                if (p) p.SetActive(false);
+            if (recipe == null || recipe.pages == null)
+                continue;
+
+            foreach (var page in recipe.pages)
+            {
+                if (page != null)
+                    page.SetActive(false);
+            }
         }
     }
 
@@ -256,19 +312,24 @@ public class CookBook : MonoBehaviour
     {
         HideAllPages();
 
-        if (pagesRoot == null) return;
+        if (pagesRoot == null)
+            return;
 
         for (int i = 0; i < pagesRoot.childCount; i++)
         {
-            var child = pagesRoot.GetChild(i);
-            if (IsPersistentPagesChild(child)) continue;
+            Transform child = pagesRoot.GetChild(i);
+
+            if (IsPersistentPagesChild(child))
+                continue;
+
             child.gameObject.SetActive(false);
         }
     }
 
     private void ActivatePageChain(GameObject page)
     {
-        if (page == null) return;
+        if (page == null)
+            return;
 
         if (pagesRoot == null)
         {
@@ -276,25 +337,31 @@ public class CookBook : MonoBehaviour
             return;
         }
 
-        var current = page.transform;
+        Transform current = page.transform;
+
         while (current != null)
         {
             current.gameObject.SetActive(true);
-            if (current == pagesRoot) break;
+
+            if (current == pagesRoot)
+                break;
+
             current = current.parent;
         }
     }
 
     private void ResolvePagesRoot()
     {
-        if (pagesRoot != null) return;
+        if (pagesRoot != null)
+            return;
 
         Transform sharedParent = null;
-        var hubs = new[] { dishesHubPage, wordsHubPage, peopleHubPage };
+        GameObject[] hubs = { dishesHubPage, wordsHubPage, peopleHubPage };
 
-        foreach (var hub in hubs)
+        foreach (GameObject hub in hubs)
         {
-            if (hub == null) continue;
+            if (hub == null)
+                continue;
 
             if (sharedParent == null)
             {
@@ -318,12 +385,14 @@ public class CookBook : MonoBehaviour
 
     private void EnsureButtonGraphic(Button button)
     {
-        if (button == null) return;
+        if (button == null)
+            return;
 
-        var graphic = button.GetComponent<Graphic>();
+        Graphic graphic = button.GetComponent<Graphic>();
+
         if (graphic == null)
         {
-            var image = button.gameObject.AddComponent<Image>();
+            Image image = button.gameObject.AddComponent<Image>();
             image.color = new Color(1f, 1f, 1f, 0f);
             image.raycastTarget = true;
             graphic = image;
@@ -343,6 +412,9 @@ public class CookBook : MonoBehaviour
 
         BringRootToFront(closeButton != null ? closeButton.transform : null, overlayRoot);
         BringRootToFront(dishesTabButton != null ? dishesTabButton.transform : null, overlayRoot);
+        BringRootToFront(wordsTabButton != null ? wordsTabButton.transform : null, overlayRoot);
+        BringRootToFront(peopleTabButton != null ? peopleTabButton.transform : null, overlayRoot);
+        BringRootToFront(helpButton != null ? helpButton.transform : null, overlayRoot);
         BringRootToFront(helpBlockerButton != null ? helpBlockerButton.transform : null, overlayRoot);
         BringRootToFront(helpPopupPanel != null ? helpPopupPanel.transform : null, overlayRoot);
 
@@ -353,16 +425,21 @@ public class CookBook : MonoBehaviour
     private void BringRootToFront(Transform target, Transform parentRoot)
     {
         Transform root = GetRootBelowParent(target, parentRoot);
+
         if (root != null)
             root.SetAsLastSibling();
     }
 
     private Transform GetRootBelowParent(Transform target, Transform parentRoot)
     {
-        if (target == null) return null;
-        if (parentRoot == null) return target;
+        if (target == null)
+            return null;
+
+        if (parentRoot == null)
+            return target;
 
         Transform root = target;
+
         while (root.parent != null && root.parent != parentRoot)
             root = root.parent;
 
@@ -371,26 +448,38 @@ public class CookBook : MonoBehaviour
 
     private bool IsPersistentPagesChild(Transform child)
     {
-        if (child == null) return false;
+        if (child == null)
+            return false;
 
         Transform leftRoot = GetRootBelowParent(leftArrowButton != null ? leftArrowButton.transform : null, pagesRoot);
-        if (leftRoot == child) return true;
+        if (leftRoot == child)
+            return true;
 
         Transform rightRoot = GetRootBelowParent(rightArrowButton != null ? rightArrowButton.transform : null, pagesRoot);
-        return rightRoot == child;
+        if (rightRoot == child)
+            return true;
+
+        return false;
     }
 
-    // ---------- Help Popup (modal) ----------
     private void OpenHelp()
     {
-        if (helpPopupPanel) helpPopupPanel.SetActive(true);
-        if (helpBlockerButton) helpBlockerButton.gameObject.SetActive(true);
+        if (helpPopupPanel != null)
+            helpPopupPanel.SetActive(true);
+
+        if (helpBlockerButton != null)
+            helpBlockerButton.gameObject.SetActive(true);
+
+        BringOverlayControlsToFront();
     }
 
     private void CloseHelp()
     {
-        if (helpPopupPanel) helpPopupPanel.SetActive(false);
-        if (helpBlockerButton) helpBlockerButton.gameObject.SetActive(false);
+        if (helpPopupPanel != null)
+            helpPopupPanel.SetActive(false);
+
+        if (helpBlockerButton != null)
+            helpBlockerButton.gameObject.SetActive(false);
     }
 
     private bool IsHelpOpen()
