@@ -41,48 +41,42 @@ public class TutorialManager : MonoBehaviour
     [Header("Scene Names")]
     public string prologueSceneName = "PrologueScene";
     public string restaurantSceneName = "RestaurantScene";
-    public string grandmaSceneName = "GrandmasHouseScene";
+    public string grandmaSceneName = "GrandmaHouse";
     public string kitchenSceneName = "KitchenScene";
 
     [Header("Saved Step Key")]
     public string tutorialStepKey = "DEMO_TUTORIAL_STEP";
 
     [Header("Grandma House Line Indices")]
-    [Tooltip("After 'I have a gift for you' finishes, the popup should appear.")]
-    public int grandmaGiftPopupShowAfterIndex = 5;
-
-    [Tooltip("After 'It's all the knowledge I've gained...' finishes, the popup should disappear.")]
-    public int grandmaGiftPopupHideAfterIndex = 7;
-
     [Tooltip("After 'Anything! I gave you my cookbook!' finishes, pause and wait for cookbook click.")]
-    public int grandmaPauseForCookbookAfterIndex = 13;
+    public int grandmaPauseForCookbookAfterIndex = 15;
 
     [Tooltip("Resume grandma dialogue at this index after first cookbook click.")]
-    public int grandmaResumeAfterCookbookIndex = 14;
+    public int grandmaResumeAfterCookbookIndex = 16;
 
     [Tooltip("After 'Wow, I can't really understand any of this...' finishes, pause for grilled cheese click.")]
-    public int grandmaPauseForGrilledCheeseAfterIndex = 14;
+    public int grandmaPauseForGrilledCheeseAfterIndex = 16;
 
     [Tooltip("Resume grandma dialogue at this index after grilled cheese click.")]
-    public int grandmaResumeAfterGrilledCheeseIndex = 15;
+    public int grandmaResumeAfterGrilledCheeseIndex = 17;
 
     [Tooltip("After 'In this game you will need to sign to progress in the game' finishes, wait for cookbook reopen.")]
-    public int grandmaPauseForCookbookReopenAfterIndex = 18;
+    public int grandmaPauseForCookbookReopenAfterIndex = 22;
 
     [Tooltip("Resume grandma dialogue at this index after cookbook reopen.")]
-    public int grandmaResumeAfterCookbookReopenIndex = 19;
+    public int grandmaResumeAfterCookbookReopenIndex = 23;
 
     [Tooltip("After 'Click on bread' finishes, pause for bread button click.")]
-    public int grandmaPauseForBreadClickAfterIndex = 20;
+    public int grandmaPauseForBreadClickAfterIndex = 24;
 
     [Tooltip("Resume grandma dialogue at this index after the study session closes.")]
-    public int grandmaResumeAfterStudySessionIndex = 21;
+    public int grandmaResumeAfterStudySessionIndex = 25;
 
     [Tooltip("After grandma says 'Let me know what you need', pause for Sign button.")]
-    public int grandmaPauseForSignButtonAfterIndex = 22;
+    public int grandmaPauseForSignButtonAfterIndex = 26;
 
     [Tooltip("After grandma says 'Yes! Bread, here you go. What else?', wait for cookbook reopen for remaining ingredients.")]
-    public int grandmaPauseForRemainingIngredientCookbookAfterIndex = 24;
+    public int grandmaPauseForRemainingIngredientCookbookAfterIndex = 28;
 
     private TutorialSceneRefs refs;
     public TutorialStep Step { get; private set; } = TutorialStep.None;
@@ -399,7 +393,6 @@ public class TutorialManager : MonoBehaviour
         SetActive(refs.cookbookHighlight, false);
         SetActive(refs.grilledCheeseHighlight, false);
         SetActive(refs.breadHighlight, false);
-        SetActive(refs.giftPopup, false);
         SetActive(refs.signEngineRoot, false);
 
         SetInteractable(refs.doorButton, false);
@@ -661,17 +654,6 @@ public class TutorialManager : MonoBehaviour
     {
         if (refs == null) return;
 
-        if (Step == TutorialStep.GrandmaIntro && index == grandmaGiftPopupShowAfterIndex + 1)
-        {
-            SetActive(refs.giftPopup, true);
-        }
-
-        if ((Step == TutorialStep.GrandmaIntro || Step == TutorialStep.GrandmaWaitCookbookOpen) &&
-            index == grandmaGiftPopupHideAfterIndex + 1)
-        {
-            SetActive(refs.giftPopup, false);
-        }
-
         if (Step == TutorialStep.GrandmaIntro &&
             index == grandmaPauseForCookbookAfterIndex + 1)
         {
@@ -727,8 +709,9 @@ public class TutorialManager : MonoBehaviour
         }
 
         if ((Step == TutorialStep.GrandmaIntro ||
-             Step == TutorialStep.GrandmaWaitCookbookReopen ||
-             Step == TutorialStep.GrandmaWaitBreadClick) &&
+            Step == TutorialStep.GrandmaWaitCookbookReopen ||
+            Step == TutorialStep.GrandmaWaitBreadClick ||
+            Step == TutorialStep.GrandmaWaitStudyClose) &&
             index == grandmaPauseForSignButtonAfterIndex + 1)
         {
             Step = TutorialStep.GrandmaWaitSignBreadButton;
@@ -824,7 +807,6 @@ public class TutorialManager : MonoBehaviour
             refs.conversationNPC?.SetExternalPause(false);
             refs.conversationNPC?.ResumeAfterClick(grandmaResumeAfterStudySessionIndex);
 
-            Step = TutorialStep.GrandmaWaitSignBreadButton;
             SaveStep();
         }
     }
@@ -837,7 +819,7 @@ public class TutorialManager : MonoBehaviour
         SetActive(refs.signEngineRoot, false);
 
         refs.conversationNPC?.SetExternalPause(false);
-        refs.conversationNPC?.ResumeAfterClick(23);
+        refs.conversationNPC?.ResumeAfterClick(28);
     }
 
     public void NotifyCheeseSigned()
@@ -860,7 +842,7 @@ public class TutorialManager : MonoBehaviour
         SetActive(refs.signEngineRoot, false);
 
         refs.conversationNPC?.SetExternalPause(false);
-        refs.conversationNPC?.ResumeAfterClick(25);
+        refs.conversationNPC?.ResumeAfterClick(29);
     }
 
     public void NotifyGrandmaDialogueFinishedAndEnableBack()

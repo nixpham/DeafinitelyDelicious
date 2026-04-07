@@ -720,67 +720,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6149524103637977401, guid: b4fe3cb06b38405498b3f27e9359256b, type: 3}
   m_PrefabInstance: {fileID: 500183921}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &609828652
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 609828653}
-  - component: {fileID: 609828654}
-  m_Layer: 0
-  m_Name: TutorialManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &609828653
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 609828652}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 333.33582, y: 949.8826, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &609828654
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 609828652}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab231d8361c89ba48a84f09c62dbbb76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
-  prologueSceneName: PrologueScene
-  restaurantSceneName: RestaurantScene
-  grandmaSceneName: GrandmaHouse
-  kitchenSceneName: KitchenScene
-  tutorialStepKey: DEMO_TUTORIAL_STEP
-  grandmaGiftPopupShowAfterIndex: 5
-  grandmaGiftPopupHideAfterIndex: 7
-  grandmaPauseForCookbookAfterIndex: 13
-  grandmaResumeAfterCookbookIndex: 14
-  grandmaPauseForGrilledCheeseAfterIndex: 14
-  grandmaResumeAfterGrilledCheeseIndex: 15
-  grandmaPauseForCookbookReopenAfterIndex: 18
-  grandmaResumeAfterCookbookReopenIndex: 19
-  grandmaPauseForBreadClickAfterIndex: 20
-  grandmaResumeAfterStudySessionIndex: 21
-  grandmaPauseForSignButtonAfterIndex: 22
-  grandmaPauseForRemainingIngredientCookbookAfterIndex: 24
 --- !u!1 &621314924
 GameObject:
   m_ObjectHideFlags: 0
@@ -1091,6 +1030,67 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5439327698778976822, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
   m_PrefabInstance: {fileID: 2087706650}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1032190431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1032190433}
+  - component: {fileID: 1032190432}
+  m_Layer: 0
+  m_Name: TutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1032190432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032190431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab231d8361c89ba48a84f09c62dbbb76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  prologueSceneName: PrologueScene
+  restaurantSceneName: RestaurantScene
+  grandmaSceneName: GrandmaHouse
+  kitchenSceneName: KitchenScene
+  tutorialStepKey: DEMO_TUTORIAL_STEP
+  grandmaGiftPopupShowAfterIndex: 5
+  grandmaGiftPopupHideAfterIndex: 7
+  grandmaPauseForCookbookAfterIndex: 13
+  grandmaResumeAfterCookbookIndex: 14
+  grandmaPauseForGrilledCheeseAfterIndex: 14
+  grandmaResumeAfterGrilledCheeseIndex: 15
+  grandmaPauseForCookbookReopenAfterIndex: 18
+  grandmaResumeAfterCookbookReopenIndex: 19
+  grandmaPauseForBreadClickAfterIndex: 20
+  grandmaResumeAfterStudySessionIndex: 21
+  grandmaPauseForSignButtonAfterIndex: 22
+  grandmaPauseForRemainingIngredientCookbookAfterIndex: 24
+--- !u!4 &1032190433
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032190431}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 441.26288, y: 1552.4022, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1079940249 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3937652665189088379, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
@@ -3443,4 +3443,4 @@ SceneRoots:
   - {fileID: 843647193}
   - {fileID: 1840990596}
   - {fileID: 1350547242}
-  - {fileID: 609828653}
+  - {fileID: 1032190433}

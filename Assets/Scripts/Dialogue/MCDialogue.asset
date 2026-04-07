@@ -79,21 +79,57 @@ MonoBehaviour:
   - speakerId: granny
     text: I have a gift for you
   - speakerId: mc
-    text: What is it
+    text: '*Granny gifts you a worn-out book*'
   - speakerId: mc
+    text: What is it
+  - speakerId: granny
     text: "It\u2019s all the knowledge I\u2019ve gained when I ran that place"
   - speakerId: mc
     text: What do you want me to do with it?
-  - speakerId: mc
+  - speakerId: granny
     text: Cook!
   - speakerId: mc
-    text: "Just now grandma. I\u2019m glad to be back"
+    text: Cook? Where?
+  - speakerId: granny
+    text: At the restaurant of course!
   - speakerId: mc
-    text: "Just now grandma. I\u2019m glad to be back"
+    text: What do I cook?
+  - speakerId: granny
+    text: Anything! I gave you my cookbook!
   - speakerId: mc
-    text: "Just now grandma. I\u2019m glad to be back"
+    text: "*Wow, I can\u2019t really understand any of this. The pages are old it\u2019s
+      hard to read the instructions*"
   - speakerId: mc
-    text: "Just now grandma. I\u2019m glad to be back"
+    text: '*All that I could understand is the first page* '
+  - speakerId: mc
+    text: Do you want a grilled cheese sandwich?
+  - speakerId: granny
+    text: I would love that!
+  - speakerId: granny
+    text: "I left my pan at the restaurant though, you\u2019ll have to go back to
+      cook."
+  - speakerId: granny
+    text: I can give you the ingredients though, just tell me what you need
+  - speakerId: tutorial
+    text: In this game you will need to sign to progress in the game
+  - speakerId: tutorial
+    text: 'You can learn to sign any necessary words in the cookbook
+
+'
+  - speakerId: tutorial
+    text: "Click on \u201Cbread\u201D"
+  - speakerId: tutorial
+    text: "Let\u2019s try to sign bread to Grandma"
+  - speakerId: granny
+    text: Let me know what you need
+  - speakerId: granny
+    text: Yes! Bread, here you go. What else?
+  - speakerId: mc
+    text: Great! Now continue with the other two ingredients!
+  - speakerId: mc
+    text: I think that's everything
+  - speakerId: granny
+    text: I look forward to your cooking!
   grandmasHouseGrandmaReminderLines:
   - speakerId: Granny
     text: I look forward to your cooking!
@@ -108,8 +144,6 @@ MonoBehaviour:
   - speakerId: granny
     text: Go go cook!
   kitchenTutorialLines:
-  - speakerId: tutorial
-    text: Time to make your first dish!
   - speakerId: tutorial
     text: Time to make your first dish!
   restaurantIntro3Lines:
@@ -147,5 +181,4 @@ MonoBehaviour:
   - options: []
   - options: []
   - options: []
-  grandmasHouse1Choices: []
   typingSpeed: 0.08

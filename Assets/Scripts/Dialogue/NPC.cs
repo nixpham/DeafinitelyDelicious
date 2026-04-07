@@ -167,6 +167,7 @@ public class NPC : MonoBehaviour
         sequenceToPlay = seq;
         playOnce = usePlayOnce;
         playOnceId = key;
+        Debug.Log(gameObject.name + " is playing sequence: " + seq);
         StartDialogue();
     }
 
