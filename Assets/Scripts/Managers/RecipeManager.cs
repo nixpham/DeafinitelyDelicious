@@ -1,260 +1,324 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class RecipeManager : MonoBehaviour
 {
-    public List<Recipe> recipes;
-
+    [Header("Managers")]
     public MinigameManager minigameManager;
-    public UIManager uiManager;
 
-    public RectTransform countertopArea;
+    [Header("Kitchen Objects")]
+    public GameObject knife;
+    public GameObject cuttingBoard;
+    public GameObject bread;
+    public GameObject cheese;
+    public GameObject butter;
+    public GameObject grater;
+    public GameObject pan;
 
-    public GameObject knife, cuttingBoard, bread, cheese, grater, pan, plate;
+    [Header("Completed Food")]
+    public GameObject grilledCheeseObject;
+
+    private List<Recipe> recipes = new List<Recipe>();
 
     private Recipe currentRecipe;
     private int currentStepIndex = 0;
-    private readonly HashSet<GameObject> placedObjects = new HashSet<GameObject>();
+    private bool recipeLocked = false;
 
-    private CookingStep CurrentStep =>
-        currentRecipe != null &&
-        currentRecipe.cookingSteps != null &&
-        currentStepIndex >= 0 &&
-        currentStepIndex < currentRecipe.cookingSteps.Count
-            ? currentRecipe.cookingSteps[currentStepIndex]
-            : null;
+    private readonly HashSet<GameObject> selectedObjects = new HashSet<GameObject>();
+    private readonly Dictionary<string, bool> completedRecipes = new Dictionary<string, bool>();
 
-    void Start()
+    private CookingStep CurrentStep
     {
-        InitializeRecipes();
-        InitializeStepObjects();
+        get
+        {
+            if (currentRecipe == null) return null;
+            if (currentRecipe.cookingSteps == null) return null;
+            if (currentStepIndex < 0 || currentStepIndex >= currentRecipe.cookingSteps.Count) return null;
+            return currentRecipe.cookingSteps[currentStepIndex];
+        }
     }
 
-    void InitializeRecipes()
+    private void Start()
     {
-        var grilledCheese = new Recipe
+        InitializeRecipes();
+        InitializeSceneState();
+    }
+
+    private void InitializeRecipes()
+    {
+        Recipe grilledCheese = new Recipe
         {
             recipeName = "Grilled Cheese",
-            requiredIngredients = new List<string> { "Bread", "Butter", "Cheese" },
+            completedFoodObject = grilledCheeseObject,
             cookingSteps = new List<CookingStep>
             {
                 new CookingStep
                 {
-                    toolName = "Knife",
+                    stepName = "Slice Bread",
                     minigameName = "SlicingMinigamePanel",
-                    requiredObjects = new List<GameObject> { knife, bread, cuttingBoard },
-                    requiredCountertopObjects = new List<GameObject> { bread, cuttingBoard }
+                    requiredSelections = new List<GameObject> { bread, knife, cuttingBoard }
                 },
                 new CookingStep
                 {
-                    toolName = "Grater",
+                    stepName = "Grate Cheese",
                     minigameName = "StackingMinigamePanel",
-                    requiredObjects = new List<GameObject> { grater, cheese, bread },
-                    requiredCountertopObjects = new List<GameObject> { cheese, bread }
+                    requiredSelections = new List<GameObject> { bread, cheese, grater }
                 },
                 new CookingStep
                 {
-                    toolName = "Pan",
+                    stepName = "Cook Sandwich",
                     minigameName = "FlippingMinigamePanel",
-                    requiredObjects = new List<GameObject> { pan },
-                    requiredCountertopObjects = new List<GameObject>()
+                    requiredSelections = new List<GameObject> { bread, butter, pan }
                 }
             }
         };
 
         recipes = new List<Recipe> { grilledCheese };
-    }
 
-    void InitializeStepObjects()
-    {
-        var required = new HashSet<GameObject>();
-        foreach (var r in recipes)
-        foreach (var s in r.cookingSteps)
+        foreach (Recipe recipe in recipes)
         {
-            if (s.requiredObjects != null)            required.UnionWith(s.requiredObjects);
-            if (s.requiredCountertopObjects != null)  required.UnionWith(s.requiredCountertopObjects);
+            completedRecipes[recipe.recipeName] = false;
+
+            if (recipe.completedFoodObject != null)
+            {
+                recipe.completedFoodObject.SetActive(false);
+            }
         }
-
-        var maybe = new[] { knife, cuttingBoard, bread, cheese, grater };
-        foreach (var go in maybe)
-            if (go && !required.Contains(go)) go.SetActive(false);
-
-        if (plate) plate.SetActive(false);
     }
 
-    public void SelectRecipe(string recipeName)
+    private void InitializeSceneState()
     {
-        currentRecipe = recipes.Find(r => r.recipeName == recipeName);
+        ClearAllSelections();
+        currentRecipe = null;
         currentStepIndex = 0;
-        placedObjects.Clear();
+        recipeLocked = false;
+        Debug.Log("RecipeManager initialized.");
+    }
 
-        if (plate) plate.SetActive(false);
+    public void HandleKitchenObjectClicked(KitchenSelectable selectable)
+    {
+        if (selectable == null || selectable.gameObject == null)
+            return;
 
-        if (CurrentStep == null)
+        GameObject clickedObject = selectable.gameObject;
+        Debug.Log("Clicked: " + clickedObject.name);
+
+        if (minigameManager != null && minigameManager.IsMinigameOpen)
         {
-            Debug.LogError($"Recipe '{recipeName}' not found or has no steps.");
+            Debug.Log("Ignored click because minigame is already open.");
             return;
         }
 
-        ShowStepObjects();
-        SyncPlacedObjectsWithCounterArea();
-        UpdatePlacementInstruction();
-        TryUnlockToolIfReady();
-    }
-
-    public void ObjectPlaced(GameObject obj)
-    {
-        var step = CurrentStep;
-        if (step == null || obj == null) return;
-
-        if (step.requiredCountertopObjects != null && step.requiredCountertopObjects.Contains(obj))
+        Recipe foodRecipe = GetRecipeByCompletedFood(clickedObject);
+        if (foodRecipe != null && completedRecipes.ContainsKey(foodRecipe.recipeName) && completedRecipes[foodRecipe.recipeName])
         {
-            if (IsObjectOnCounterUI(obj))
-            {
-                placedObjects.Add(obj);
-                obj.SetActive(true);
-
-                if (!TryUnlockToolIfReady())
-                    UpdatePlacementInstruction();
-            }
-            else
-            {
-                UpdatePlacementInstruction();
-            }
+            Debug.Log("Clicked completed food: " + clickedObject.name);
+            OnCompletedFoodClicked(foodRecipe);
+            return;
         }
+
+        if (recipeLocked)
+        {
+            Debug.Log("Recipe is locked. Current step: " + CurrentStep.stepName);
+            ToggleSelection(selectable);
+            TryAutoStartLockedRecipeStep();
+            return;
+        }
+
+        ToggleSelection(selectable);
+        TryAutoDetectAndStartRecipe();
     }
 
-    public void TryStartMinigame(string toolName)
+    private void ToggleSelection(KitchenSelectable selectable)
     {
-        var step = CurrentStep;
-        if (step == null) return;
-
-        SyncPlacedObjectsWithCounterArea();
-
-        if (step.toolName == toolName && placedObjects.Count == (step.requiredCountertopObjects?.Count ?? 0))
+        if (selectable.IsSelected)
         {
-            minigameManager?.OpenMinigame(step.minigameName);
+            selectable.SetSelected(false);
+            selectedObjects.Remove(selectable.gameObject);
+            Debug.Log("Unselected: " + selectable.gameObject.name);
         }
         else
         {
-            if (!TryUnlockToolIfReady())
-                UpdatePlacementInstruction();
+            selectable.SetSelected(true);
+            selectedObjects.Add(selectable.gameObject);
+            Debug.Log("Selected: " + selectable.gameObject.name);
+        }
+
+        DebugSelectedObjects();
+    }
+
+    private void DebugSelectedObjects()
+    {
+        string msg = "Currently selected: ";
+        foreach (GameObject obj in selectedObjects)
+        {
+            msg += obj.name + " | ";
+        }
+        Debug.Log(msg);
+    }
+
+    private void TryAutoDetectAndStartRecipe()
+    {
+        Debug.Log("Trying to detect recipe start...");
+
+        foreach (Recipe recipe in recipes)
+        {
+            if (completedRecipes.ContainsKey(recipe.recipeName) && completedRecipes[recipe.recipeName])
+                continue;
+
+            if (recipe.cookingSteps == null || recipe.cookingSteps.Count == 0)
+                continue;
+
+            CookingStep firstStep = recipe.cookingSteps[0];
+            Debug.Log("Checking recipe: " + recipe.recipeName + " | Need: " + GetObjectNames(firstStep.requiredSelections));
+
+            if (SelectionMatchesExactly(firstStep.requiredSelections))
+            {
+                Debug.Log("MATCHED FIRST STEP for: " + recipe.recipeName);
+                currentRecipe = recipe;
+                currentStepIndex = 0;
+                recipeLocked = true;
+
+                minigameManager?.OpenMinigame(firstStep.minigameName);
+                return;
+            }
+        }
+
+        Debug.Log("No recipe start matched.");
+    }
+
+    private void TryAutoStartLockedRecipeStep()
+    {
+        if (currentRecipe == null || CurrentStep == null)
+            return;
+
+        Debug.Log("Trying locked step: " + CurrentStep.stepName + " | Need: " + GetObjectNames(CurrentStep.requiredSelections));
+
+        if (SelectionMatchesExactly(CurrentStep.requiredSelections))
+        {
+            Debug.Log("MATCHED LOCKED STEP: " + CurrentStep.stepName);
+            minigameManager?.OpenMinigame(CurrentStep.minigameName);
+        }
+        else
+        {
+            Debug.Log("Locked step not matched yet.");
         }
     }
 
     public void CompleteMinigame()
     {
-        HideObjectsNotNeededAnymore(currentStepIndex);
+        if (currentRecipe == null)
+            return;
 
+        Debug.Log("Completed minigame for step index: " + currentStepIndex);
+
+        ClearAllSelections();
         currentStepIndex++;
-        placedObjects.Clear();
 
-        if (CurrentStep != null)
+        if (currentStepIndex >= currentRecipe.cookingSteps.Count)
         {
-            ShowStepObjects();
-            SyncPlacedObjectsWithCounterArea();
-            UpdatePlacementInstruction();
-            TryUnlockToolIfReady();
-        }
-        else
-        {
-            if (plate) plate.SetActive(true);
-            uiManager?.UpdateInstructions("Now grab the plate to serve it!");
-        }
-    }
-
-    void ShowStepObjects()
-    {
-        var step = CurrentStep;
-        if (step?.requiredObjects == null) return;
-
-        foreach (var obj in step.requiredObjects)
-            if (obj && !obj.activeSelf) obj.SetActive(true);
-    }
-
-    void HideObjectsNotNeededAnymore(int completedIndex)
-    {
-        if (currentRecipe == null ||
-            completedIndex < 0 ||
-            completedIndex >= currentRecipe.cookingSteps.Count) return;
-
-        var justCompleted = currentRecipe.cookingSteps[completedIndex];
-
-        var nextNeeds = new HashSet<GameObject>();
-        var nextIndex = completedIndex + 1;
-        if (nextIndex < currentRecipe.cookingSteps.Count)
-        {
-            var next = currentRecipe.cookingSteps[nextIndex];
-            if (next.requiredCountertopObjects != null) nextNeeds.UnionWith(next.requiredCountertopObjects);
-            if (next.requiredObjects != null)           nextNeeds.UnionWith(next.requiredObjects);
+            MarkRecipeComplete(currentRecipe);
+            return;
         }
 
-        if (justCompleted.requiredCountertopObjects == null) return;
-
-        foreach (var obj in justCompleted.requiredCountertopObjects)
-            if (obj) obj.SetActive(nextNeeds.Contains(obj));
+        Debug.Log("Advanced to next step: " + CurrentStep.stepName);
     }
 
-    void SyncPlacedObjectsWithCounterArea()
+    private void MarkRecipeComplete(Recipe recipe)
     {
-        var step = CurrentStep;
-        if (step?.requiredCountertopObjects == null) return;
+        completedRecipes[recipe.recipeName] = true;
+        recipeLocked = false;
+        currentRecipe = null;
+        currentStepIndex = 0;
 
-        foreach (var obj in step.requiredCountertopObjects)
-            if (obj && IsObjectOnCounterUI(obj)) placedObjects.Add(obj);
-    }
-
-    bool IsObjectOnCounterUI(GameObject obj)
-    {
-        if (!countertopArea) return false;
-        var rect = obj.GetComponent<RectTransform>();
-        if (!rect) return false;
-
-        return RectTransformUtility.RectangleContainsScreenPoint(countertopArea, rect.position, null);
-    }
-
-    bool TryUnlockToolIfReady()
-    {
-        var step = CurrentStep;
-        if (step == null) return false;
-
-        int need = step.requiredCountertopObjects?.Count ?? 0;
-        if (placedObjects.Count == need)
+        if (recipe.completedFoodObject != null)
         {
-            uiManager?.UpdateInstructions($"Now get the {step.toolName} to begin!");
-            HighlightTool(step.toolName);
-            return true;
+            recipe.completedFoodObject.SetActive(true);
         }
-        return false;
+
+        Debug.Log("Recipe completed: " + recipe.recipeName);
     }
 
-    void HighlightTool(string toolName)
+    private void OnCompletedFoodClicked(Recipe recipe)
     {
-        var tool = GameObject.Find(toolName);
-        if (!tool) return;
+        completedRecipes[recipe.recipeName] = false;
 
-        var button = tool.GetComponent<Button>();
-        if (!button) return;
+        if (recipe.completedFoodObject != null)
+        {
+            recipe.completedFoodObject.SetActive(false);
+        }
 
-        if (!tool.GetComponent<Outline>()) tool.AddComponent<Outline>();
+        ClearAllSelections();
+        currentRecipe = null;
+        currentStepIndex = 0;
+        recipeLocked = false;
+
+        Debug.Log("Recipe reset: " + recipe.recipeName);
     }
 
-    void UpdatePlacementInstruction()
+    private void ClearAllSelections()
     {
-        var step = CurrentStep;
-        if (step == null) return;
+        selectedObjects.Clear();
 
-        int need = step.requiredCountertopObjects?.Count ?? 0;
-        int have = placedObjects.Count;
-        uiManager?.UpdateInstructions($"Place the {GetObjectNames(step.requiredCountertopObjects)} on the counter. ({have}/{need})");
+        KitchenSelectable[] allSelectables = FindObjectsOfType<KitchenSelectable>(true);
+        foreach (KitchenSelectable selectable in allSelectables)
+        {
+            if (selectable != null)
+            {
+                selectable.ClearSelection();
+            }
+        }
     }
 
-    string GetObjectNames(List<GameObject> objects)
+    private bool SelectionMatchesExactly(List<GameObject> neededObjects)
     {
-        if (objects == null || objects.Count == 0) return "";
-        var names = new List<string>();
-        foreach (var o in objects) if (o) names.Add(o.name);
-        return string.Join(" and ", names);
+        if (neededObjects == null)
+            return selectedObjects.Count == 0;
+
+        if (selectedObjects.Count != neededObjects.Count)
+            return false;
+
+        HashSet<string> selectedNames = new HashSet<string>();
+        foreach (GameObject obj in selectedObjects)
+        {
+            if (obj != null)
+                selectedNames.Add(obj.name);
+        }
+
+        foreach (GameObject needed in neededObjects)
+        {
+            if (needed == null || !selectedNames.Contains(needed.name))
+                return false;
+        }
+
+        return true;
+    }
+
+    private Recipe GetRecipeByCompletedFood(GameObject obj)
+    {
+        foreach (Recipe recipe in recipes)
+        {
+            if (recipe.completedFoodObject == obj)
+                return recipe;
+        }
+
+        return null;
+    }
+
+    private string GetObjectNames(List<GameObject> objects)
+    {
+        if (objects == null || objects.Count == 0)
+            return "";
+
+        List<string> names = new List<string>();
+        foreach (GameObject obj in objects)
+        {
+            if (obj != null)
+            {
+                names.Add(obj.name);
+            }
+        }
+
+        return string.Join(", ", names);
     }
 }

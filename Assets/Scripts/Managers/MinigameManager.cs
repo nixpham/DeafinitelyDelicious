@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class MinigameManager : MonoBehaviour
 {
@@ -11,31 +10,58 @@ public class MinigameManager : MonoBehaviour
     private GameObject activeMinigame = null;
     public RecipeManager recipeManager;
 
+    public bool IsMinigameOpen => activeMinigame != null;
+
     public void OpenMinigame(string minigameName)
     {
+        Debug.Log("OpenMinigame called with: " + minigameName);
+
+        CloseCurrentOnly();
+
         switch (minigameName)
         {
             case "SlicingMinigamePanel":
-                slicingMinigamePanel.SetActive(true);
-                activeMinigame = slicingMinigamePanel;
-                Debug.Log("Opening slicing minigame panel");
+                if (slicingMinigamePanel != null)
+                {
+                    slicingMinigamePanel.SetActive(true);
+                    activeMinigame = slicingMinigamePanel;
+                    Debug.Log("Slicing panel activeSelf: " + slicingMinigamePanel.activeSelf + ", activeInHierarchy: " + slicingMinigamePanel.activeInHierarchy);
+                }
+                else
+                {
+                    Debug.LogError("Slicing panel is NULL");
+                }
                 break;
 
             case "StackingMinigamePanel":
-                stackingMinigamePanel.SetActive(true);
-                activeMinigame = stackingMinigamePanel;
-                Debug.Log("Opening stacking minigame panel");
+                if (stackingMinigamePanel != null)
+                {
+                    stackingMinigamePanel.SetActive(true);
+                    activeMinigame = stackingMinigamePanel;
+                    Debug.Log("Stacking panel activeSelf: " + stackingMinigamePanel.activeSelf + ", activeInHierarchy: " + stackingMinigamePanel.activeInHierarchy);
+                }
+                else
+                {
+                    Debug.LogError("Stacking panel is NULL");
+                }
                 break;
 
             case "FlippingMinigamePanel":
-                flippingMinigamePanel.SetActive(true);
-                activeMinigame = flippingMinigamePanel;
-                Debug.Log("Opening flipping minigame panel");
+                if (flippingMinigamePanel != null)
+                {
+                    flippingMinigamePanel.SetActive(true);
+                    activeMinigame = flippingMinigamePanel;
+                    Debug.Log("Flipping panel activeSelf: " + flippingMinigamePanel.activeSelf + ", activeInHierarchy: " + flippingMinigamePanel.activeInHierarchy);
+                }
+                else
+                {
+                    Debug.LogError("Flipping panel is NULL");
+                }
                 break;
 
             default:
                 Debug.LogError("Minigame not found: " + minigameName);
-                break;
+                return;
         }
 
         EnableCamera(true);
@@ -51,21 +77,19 @@ public class MinigameManager : MonoBehaviour
 
         EnableCamera(false);
 
-        // Notify RecipeManager that the minigame is completed
         if (recipeManager != null)
         {
-            recipeManager.CompleteMinigame(); // Call this method to progress the recipe
+            recipeManager.CompleteMinigame();
         }
     }
-
 
     public void RestartMinigame()
     {
         if (activeMinigame != null)
         {
             Debug.Log("Restarting minigame: " + activeMinigame.name);
-            activeMinigame.SetActive(false); // Close it first
-            activeMinigame.SetActive(true);  // Reopen to reset
+            activeMinigame.SetActive(false);
+            activeMinigame.SetActive(true);
         }
         else
         {
@@ -73,8 +97,22 @@ public class MinigameManager : MonoBehaviour
         }
     }
 
+    private void CloseCurrentOnly()
+    {
+        if (activeMinigame != null)
+        {
+            activeMinigame.SetActive(false);
+            activeMinigame = null;
+        }
+
+        EnableCamera(false);
+    }
+
     public void EnableCamera(bool enable)
     {
-        signRecognizer.SetActive(enable);
+        if (signRecognizer != null)
+        {
+            signRecognizer.SetActive(enable);
+        }
     }
 }

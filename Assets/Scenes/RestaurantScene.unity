@@ -1693,7 +1693,7 @@ MonoBehaviour:
   restaurantGrandmaButton: {fileID: 1308606202}
   restaurantGrandmaHighlight: {fileID: 0}
   mapButton: {fileID: 1514842945}
-  kitchenButton: {fileID: 0}
+  kitchenButton: {fileID: 181339891}
   grandmaHouseSprite: {fileID: 0}
   backButton: {fileID: 0}
   cookbookButton: {fileID: 0}
@@ -3557,7 +3557,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af1545d57aa1f4e479c4af328872d123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _kitchen: {fileID: 181339891}
+  _kitchen: {fileID: 0}
   _map: {fileID: 1514842945}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

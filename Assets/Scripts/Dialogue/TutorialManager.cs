@@ -237,10 +237,12 @@ public class TutorialManager : MonoBehaviour
 
         ResetSceneUI();
 
+        string currentScene = SceneManager.GetActiveScene().name;
+
         switch (Step)
         {
             case TutorialStep.Prologue:
-                if (SceneManager.GetActiveScene().name != prologueSceneName)
+                if (currentScene != prologueSceneName)
                 {
                     SceneManager.LoadScene(prologueSceneName);
                     return;
@@ -256,11 +258,19 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.RestaurantWaitDoorToGrandma:
             case TutorialStep.RestaurantIntro2:
             case TutorialStep.RestaurantFreeRoam:
-                if (SceneManager.GetActiveScene().name != restaurantSceneName)
+                // Allow FreeRoam to exist in either Restaurant or Kitchen
+                if (Step == TutorialStep.RestaurantFreeRoam && currentScene == kitchenSceneName)
+                {
+                    ApplyKitchenFreeRoamStep();
+                    return;
+                }
+
+                if (currentScene != restaurantSceneName)
                 {
                     SceneManager.LoadScene(restaurantSceneName);
                     return;
                 }
+
                 ApplyRestaurantStep();
                 break;
 
@@ -275,7 +285,7 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.GrandmaWaitSignDoneGate:
             case TutorialStep.GrandmaWaitAfterSignDone:
             case TutorialStep.GrandmaWaitBackButton:
-                if (SceneManager.GetActiveScene().name != grandmaSceneName)
+                if (currentScene != grandmaSceneName)
                 {
                     SceneManager.LoadScene(grandmaSceneName);
                     return;
@@ -284,7 +294,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case TutorialStep.KitchenTutorial:
-                if (SceneManager.GetActiveScene().name != kitchenSceneName)
+                if (currentScene != kitchenSceneName)
                 {
                     SceneManager.LoadScene(kitchenSceneName);
                     return;
@@ -669,6 +679,11 @@ public class TutorialManager : MonoBehaviour
     private void SetInteractable(Button button, bool interactable)
     {
         if (button != null) button.interactable = interactable;
+    }
+
+    private void ApplyKitchenFreeRoamStep()
+    {
+        ShowConversationView();
     }
 
     private bool IsStudySessionCurrentlyOpen()
