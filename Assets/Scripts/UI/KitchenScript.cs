@@ -9,6 +9,8 @@ public class KitchenScript : MonoBehaviour
     [SerializeField] Button _fridge;
     [SerializeField] Button _topCabinet;
     [SerializeField] Button _bottomCabinet;
+    [SerializeField] Button _shelf;
+    [SerializeField] Button _drawer;
 
     void Start()
     {
@@ -16,6 +18,8 @@ public class KitchenScript : MonoBehaviour
         _fridge.onClick.AddListener(LoadFridge);
         _topCabinet.onClick.AddListener(LoadTopCabinet);
         _bottomCabinet.onClick.AddListener(LoadBottomCabinet);
+        _shelf.onClick.AddListener(LoadShelf);
+        _drawer.onClick.AddListener(LoadDrawer);
     }
 
     private void LoadRestaurant()
@@ -34,5 +38,13 @@ public class KitchenScript : MonoBehaviour
     private void LoadBottomCabinet()
     {
         ScenesManager.Instance.LoadScene(ScenesManager.Scene.BottomCabinetScene);
+    }
+    private void LoadDrawer()
+    {
+        ScenesManager.Instance.LoadScene(ScenesManager.Scene.DrawerScene);
+    }
+    private void LoadShelf()
+    {
+        ScenesManager.Instance.LoadScene(ScenesManager.Scene.ShelfScene);
     }
 }
