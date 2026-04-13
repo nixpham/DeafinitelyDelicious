@@ -894,6 +894,7 @@ public class TutorialManager : MonoBehaviour
         refs.conversationNPC?.ResumeAfterClick(grandmaResumeAfterSignButtonIndex);
     }
 
+
     private void OnSignDonePressed()
     {
         if (refs == null) return;

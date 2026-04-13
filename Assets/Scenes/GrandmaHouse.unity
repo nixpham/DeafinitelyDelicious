@@ -2171,6 +2171,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1981845032149965835, guid: 497d5c774c3ce4f1ca5df896393cac60, type: 3}
   m_PrefabInstance: {fileID: 950927060}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &950927062 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3508694001495842164, guid: 497d5c774c3ce4f1ca5df896393cac60, type: 3}
+  m_PrefabInstance: {fileID: 950927060}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950927061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ce881f852aa24ed8aada6bc011e617a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &983332656
 GameObject:
   m_ObjectHideFlags: 0
@@ -3194,6 +3205,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8ce35f80ab70c34880faf42aa6aaafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialSceneRefs
+  signEngine: {fileID: 950927062}
   sceneKind: 2
   restaurantNPC: {fileID: 0}
   conversationNPC: {fileID: 493130171}
