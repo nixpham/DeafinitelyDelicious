@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RecipeManager : MonoBehaviour
 {
+    private const string SERVING_READY_KEY = "DEMO_GRILLED_CHEESE_READY_TO_SERVE";
+
     [Header("Managers")]
     public MinigameManager minigameManager;
 
@@ -17,6 +20,9 @@ public class RecipeManager : MonoBehaviour
 
     [Header("Completed Food")]
     public GameObject grilledCheeseObject;
+
+    [Header("Scene Names")]
+    public string restaurantSceneName = "RestaurantScene";
 
     private List<Recipe> recipes = new List<Recipe>();
 
@@ -80,9 +86,7 @@ public class RecipeManager : MonoBehaviour
             completedRecipes[recipe.recipeName] = false;
 
             if (recipe.completedFoodObject != null)
-            {
                 recipe.completedFoodObject.SetActive(false);
-            }
         }
     }
 
@@ -151,9 +155,7 @@ public class RecipeManager : MonoBehaviour
     {
         string msg = "Currently selected: ";
         foreach (GameObject obj in selectedObjects)
-        {
             msg += obj.name + " | ";
-        }
         Debug.Log(msg);
     }
 
@@ -232,9 +234,7 @@ public class RecipeManager : MonoBehaviour
         currentStepIndex = 0;
 
         if (recipe.completedFoodObject != null)
-        {
             recipe.completedFoodObject.SetActive(true);
-        }
 
         Debug.Log("Recipe completed: " + recipe.recipeName);
     }
@@ -244,16 +244,18 @@ public class RecipeManager : MonoBehaviour
         completedRecipes[recipe.recipeName] = false;
 
         if (recipe.completedFoodObject != null)
-        {
             recipe.completedFoodObject.SetActive(false);
-        }
 
         ClearAllSelections();
         currentRecipe = null;
         currentStepIndex = 0;
         recipeLocked = false;
 
-        Debug.Log("Recipe reset: " + recipe.recipeName);
+        PlayerPrefs.SetInt(SERVING_READY_KEY, 1);
+        PlayerPrefs.Save();
+
+        Debug.Log("Recipe reset and marked ready to serve: " + recipe.recipeName);
+        SceneManager.LoadScene(restaurantSceneName);
     }
 
     private void ClearAllSelections()
@@ -264,9 +266,7 @@ public class RecipeManager : MonoBehaviour
         foreach (KitchenSelectable selectable in allSelectables)
         {
             if (selectable != null)
-            {
                 selectable.ClearSelection();
-            }
         }
     }
 
@@ -314,9 +314,7 @@ public class RecipeManager : MonoBehaviour
         foreach (GameObject obj in objects)
         {
             if (obj != null)
-            {
                 names.Add(obj.name);
-            }
         }
 
         return string.Join(", ", names);

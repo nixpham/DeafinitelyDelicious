@@ -68,6 +68,15 @@ public class TutorialManager : MonoBehaviour
     public int grandmaResumeAfterSignDoneIndex = 29;
     public int grandmaPauseForBackButtonAfterIndex = 30;
 
+    [Header("Completion Keys")]
+    public string tutorialCompletedKey = "DEMO_TUTORIAL_COMPLETED";
+    public string firstServeFinishedKey = "DEMO_FIRST_GRILLED_CHEESE_SERVE_FINISHED";
+    public string servingReadyKey = "DEMO_GRILLED_CHEESE_READY_TO_SERVE";
+
+    private bool IsTutorialCompleted() => PlayerPrefs.GetInt(tutorialCompletedKey, 0) == 1;
+    private bool IsFirstServeFinished() => PlayerPrefs.GetInt(firstServeFinishedKey, 0) == 1;
+    private bool IsServingReady() => PlayerPrefs.GetInt(servingReadyKey, 0) == 1;
+
     private TutorialSceneRefs refs;
     public TutorialStep Step { get; private set; } = TutorialStep.None;
 
@@ -202,6 +211,11 @@ public class TutorialManager : MonoBehaviour
 
     private void ApplyStepForCurrentScene()
     {
+        if (IsTutorialCompleted())
+        {
+            ApplyPostTutorialSceneState();
+            return;
+        }
         if (refs == null) return;
 
         ResetSceneUI();
@@ -641,20 +655,29 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (Step == TutorialStep.RestaurantFreeRoam)
+        if (Step == TutorialStep.RestaurantFreeRoam || IsTutorialCompleted())
         {
             ShowConversationView();
-            refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantMomReminder2);
+
+            if (IsTutorialCompleted())
+                refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantMomReminder3);
+            else
+                refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantMomReminder2);
         }
     }
 
     private void OnRestaurantGrandmaPressed()
     {
         if (refs == null) return;
-        if (Step == TutorialStep.RestaurantFreeRoam)
+
+        if (Step == TutorialStep.RestaurantFreeRoam || IsTutorialCompleted())
         {
             ShowConversationView();
-            refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantGrandmaReminder2);
+
+            if (IsTutorialCompleted())
+                refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantGrandmaReminder3);
+            else
+                refs.conversationNPC?.PlaySequence(DialogueSequence.RestaurantGrandmaReminder2);
         }
     }
 
@@ -943,7 +966,10 @@ public class TutorialManager : MonoBehaviour
         }
 
         if (sequence == DialogueSequence.RestaurantMomReminder2 ||
-            sequence == DialogueSequence.RestaurantGrandmaReminder2)
+            sequence == DialogueSequence.RestaurantGrandmaReminder2 ||
+            sequence == DialogueSequence.RestaurantMomReminder3 ||
+            sequence == DialogueSequence.RestaurantGrandmaReminder3 ||
+            sequence == DialogueSequence.MomGrandmaGrilledCheeseDone)
         {
             ShowRestaurantView();
             return;
@@ -977,6 +1003,33 @@ public class TutorialManager : MonoBehaviour
         ApplyStepForCurrentScene();
     }
 
+    private void ApplyPostTutorialSceneState()
+    {
+        if (refs == null) return;
+
+        ResetSceneUI();
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == restaurantSceneName)
+        {
+            ShowRestaurantView();
+
+            if (refs.momSprite != null) refs.momSprite.SetActive(true);
+            if (refs.restaurantGrandmaSprite != null) refs.restaurantGrandmaSprite.SetActive(true);
+
+            SetInteractable(refs.momButton, true);
+            SetInteractable(refs.restaurantGrandmaButton, true);
+            SetInteractable(refs.kitchenButton, true);
+
+            if (refs.mapButton != null) refs.mapButton.interactable = true;
+        }
+        else if (currentScene == kitchenSceneName)
+        {
+            ApplyKitchenFreeRoamStep();
+        }
+    }
+
 #if UNITY_EDITOR
     private void Update()
     {
@@ -989,6 +1042,9 @@ public class TutorialManager : MonoBehaviour
             PlayerPrefs.DeleteKey(restaurantIntro1SeenKey);
             PlayerPrefs.DeleteKey(restaurantIntro2SeenKey);
             PlayerPrefs.DeleteKey(kitchenTutorialSeenKey);
+            PlayerPrefs.DeleteKey(tutorialCompletedKey);
+            PlayerPrefs.DeleteKey(firstServeFinishedKey);
+            PlayerPrefs.DeleteKey(servingReadyKey);
             PlayerPrefs.Save();
             Debug.Log("Tutorial reset.");
         }
