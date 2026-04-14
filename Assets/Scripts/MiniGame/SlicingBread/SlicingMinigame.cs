@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Engine;
 using Common;
 
@@ -30,8 +31,10 @@ public class SlicingMinigame : MonoBehaviour
 
     [Header("Managers")]
     [SerializeField] private MinigameManager minigameManager;
-    [SerializeField] private UIManager uiManager;
     [SerializeField] private StudySessionPopup studyPopup;
+
+    [Header("Instructions")]
+    [SerializeField] private TMP_Text instructionText;
 
     [Header("Recognizer")]
     public SimpleExecutionEngine engine;
@@ -63,6 +66,9 @@ public class SlicingMinigame : MonoBehaviour
 
     private void Awake()
     {
+        if (engine == null && PersistentSignEngine.Instance != null)
+            engine = PersistentSignEngine.Instance.Engine;
+
         if (minigameManager == null)
             minigameManager = FindObjectOfType<MinigameManager>();
 
@@ -153,6 +159,12 @@ public class SlicingMinigame : MonoBehaviour
         }
     }
 
+    private void SetInstruction(string msg)
+    {
+        if (instructionText != null)
+            instructionText.text = msg;
+    }
+
     private void InitRecognizerIfNeeded()
     {
         if (recognizerInitialized)
@@ -223,7 +235,7 @@ public class SlicingMinigame : MonoBehaviour
         }
 
         studyPopup.OpenSession(studySigns);
-        uiManager?.UpdateSteps("Before we start cooking, let's first learn the signs associated!");
+        SetInstruction("Sign \"Dance\" to pick up the knife!");
     }
 
     private void ForceIdleVisualState()
@@ -267,7 +279,7 @@ public class SlicingMinigame : MonoBehaviour
         }
 
         ResetBreadVisual();
-        uiManager?.UpdateSteps("Sign 'Dance' to pick up the knife. You have 4 tries.");
+        SetInstruction("Sign \"Dance\" to pick up the knife!");
     }
 
     private void BeginSlicePhase()
@@ -297,7 +309,7 @@ public class SlicingMinigame : MonoBehaviour
         }
 
         ResetBreadVisual();
-        uiManager?.UpdateSteps("Sign 'Cut' when the knife is straight. Need 2 successful slices in 4 tries.");
+        SetInstruction("Now, sign \"Cut\" when the knife is vertical to make 2 straight slices!");
     }
 
     private void OnSignRecognized(string rawSign)
@@ -348,7 +360,6 @@ public class SlicingMinigame : MonoBehaviour
 
         if (success)
         {
-            uiManager?.UpdateSteps("Nice! You picked up the knife.");
             BeginSlicePhase();
             return;
         }
@@ -356,7 +367,7 @@ public class SlicingMinigame : MonoBehaviour
         if (pickupAttempts >= maxPickupAttempts)
         {
             Debug.Log("[Slicing] Pickup attempts exhausted -> restarting pickup");
-            uiManager?.UpdateSteps("You ran out of pickup tries. Restarting pickup.");
+            SetInstruction("Sign \"Dance\" to pick up the knife!");
             BeginPickupPhase();
         }
     }
@@ -376,14 +387,12 @@ public class SlicingMinigame : MonoBehaviour
             if (sliceAttempts >= maxSliceAttempts)
             {
                 Debug.Log("[Slicing] Slice attempts exhausted -> back to pickup");
-                uiManager?.UpdateSteps("You did not get 2 successful slices in 4 tries. Going back to picking up the knife.");
+                SetInstruction("Sign \"Dance\" to pick up the knife!");
                 BeginPickupPhase();
                 return;
             }
 
-            int remainingWrong = maxSliceAttempts - sliceAttempts;
-            int neededWrong = requiredSuccessfulSlices - successfulCuts;
-            uiManager?.UpdateSteps("Need " + neededWrong + " more successful slice(s). Sign 'Cut' when the knife is straight. " + remainingWrong + " tries left.");
+            SetInstruction("Now, sign \"Cut\" when the knife is vertical to make 2 straight slices!");
             return;
         }
 
@@ -451,7 +460,7 @@ public class SlicingMinigame : MonoBehaviour
             if (knifeRotation != null)
                 knifeRotation.pauseRotation = false;
 
-            uiManager?.UpdateSteps("You did not get 2 successful slices in 4 tries. Going back to picking up the knife.");
+            SetInstruction("Sign \"Dance\" to pick up the knife!");
             cutAnimationPlaying = false;
             BeginPickupPhase();
             yield break;
@@ -460,10 +469,7 @@ public class SlicingMinigame : MonoBehaviour
         if (knifeRotation != null)
             knifeRotation.pauseRotation = false;
 
-        int remaining = maxSliceAttempts - sliceAttempts;
-        int needed = requiredSuccessfulSlices - successfulCuts;
-        uiManager?.UpdateSteps("Need " + needed + " more successful slice(s). Sign 'Cut' when the knife is straight. " + remaining + " tries left.");
-
+        SetInstruction("Now, sign \"Cut\" when the knife is vertical to make 2 straight slices!");
         cutAnimationPlaying = false;
     }
 
@@ -509,7 +515,7 @@ public class SlicingMinigame : MonoBehaviour
         if (knifeRotation != null)
             knifeRotation.enabled = false;
 
-        uiManager?.UpdateSteps("Success!");
+        SetInstruction("Success!");
         minigameManager?.ShowSuccessPopup("Success");
     }
 

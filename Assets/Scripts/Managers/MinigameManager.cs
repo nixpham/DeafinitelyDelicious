@@ -12,9 +12,6 @@ public class MinigameManager : MonoBehaviour
         public GameObject panelRoot;
     }
 
-    [Header("Camera / Recognizer")]
-    [SerializeField] private GameObject signRecognizer;
-
     [Header("Minigame Panels")]
     [SerializeField] private MinigameEntry[] minigames;
 
@@ -35,13 +32,6 @@ public class MinigameManager : MonoBehaviour
     {
         HideSuccessPopup();
 
-        // Keep recognizer/camera ON at all times
-        if (signRecognizer != null)
-        {
-            signRecognizer.SetActive(true);
-            Debug.Log("[MinigameManager] Sign recognizer forced ON in Awake.");
-        }
-
         if (nextButton != null)
         {
             nextButton.onClick.RemoveAllListeners();
@@ -53,16 +43,25 @@ public class MinigameManager : MonoBehaviour
             redoButton.onClick.RemoveAllListeners();
             redoButton.onClick.AddListener(HandleRedoPressed);
         }
+
+        SetRecognizerPreviewVisible(false);
     }
 
     public void OpenMinigame(string minigameName)
     {
         Debug.Log("[MinigameManager] OpenMinigame called with: " + minigameName);
 
+        if (activeMinigame != null)
+        {
+            activeMinigame.SetActive(false);
+            activeMinigame = null;
+        }
+
         GameObject minigamePanel = FindMinigamePanel(minigameName);
         if (minigamePanel == null)
         {
             Debug.LogError("[MinigameManager] Could not find minigame: " + minigameName);
+            SetRecognizerPreviewVisible(false);
             return;
         }
 
@@ -70,6 +69,7 @@ public class MinigameManager : MonoBehaviour
         activeMinigame.SetActive(true);
 
         HideSuccessPopup();
+        SetRecognizerPreviewVisible(true);
 
         activeMinigame.SendMessage("OnOpenedByManager", SendMessageOptions.DontRequireReceiver);
     }
@@ -100,6 +100,7 @@ public class MinigameManager : MonoBehaviour
         }
 
         HideSuccessPopup();
+        SetRecognizerPreviewVisible(false);
 
         Debug.Log("[MinigameManager] Minigame closed.");
     }
@@ -113,6 +114,8 @@ public class MinigameManager : MonoBehaviour
         }
 
         HideSuccessPopup();
+        SetRecognizerPreviewVisible(true);
+
         activeMinigame.SendMessage("OnRedoPressed", SendMessageOptions.DontRequireReceiver);
 
         Debug.Log("[MinigameManager] Restart requested.");
@@ -120,21 +123,20 @@ public class MinigameManager : MonoBehaviour
 
     private void HandleNextPressed()
     {
+        Debug.Log("[MinigameManager] NEXT button clicked");
+
         if (activeMinigame != null)
-        {
             activeMinigame.SendMessage("OnNextPressed", SendMessageOptions.DontRequireReceiver);
-        }
 
         if (recipeManager != null)
-        {
             recipeManager.CompleteMinigame();
-        }
 
         CloseMinigame();
     }
 
     private void HandleRedoPressed()
     {
+        Debug.Log("[MinigameManager] REDO button clicked");
         RestartMinigame();
     }
 
@@ -153,5 +155,13 @@ public class MinigameManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void SetRecognizerPreviewVisible(bool visible)
+    {
+        if (PersistentSignEngine.Instance != null)
+            PersistentSignEngine.Instance.SetPreviewVisible(visible);
+        else
+            Debug.LogWarning("[MinigameManager] PersistentSignEngine.Instance is null.");
     }
 }
