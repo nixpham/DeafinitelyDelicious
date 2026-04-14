@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Engine;
 using Common;
 
@@ -44,8 +45,8 @@ public class StackingMinigame : MonoBehaviour
     [SerializeField] private float slideSpeed = 1.2f;
 
     [Header("Alignment Offsets")]
-    [SerializeField] private float graterTargetXOffset = 35f;   // move target slightly right
-    [SerializeField] private float extraGrateTolerance = 15f;   // small extra wiggle room
+    [SerializeField] private float graterTargetXOffset = 35f;
+    [SerializeField] private float extraGrateTolerance = 15f;
 
     [Header("Tolerances (px)")]
     [SerializeField] private float grateTolerance = 60f;
@@ -56,9 +57,11 @@ public class StackingMinigame : MonoBehaviour
     [SerializeField] private float stackYOffset = 20f;
 
     [Header("Managers")]
-    [SerializeField] private UIManager uiManager;
     [SerializeField] private MinigameManager minigameManager;
     [SerializeField] private StudySessionPopup studyPopup;
+
+    [Header("Instructions")]
+    [SerializeField] private TMP_Text instructionText;
 
     [Header("Recognizer")]
     public SimpleExecutionEngine engine;
@@ -126,6 +129,9 @@ public class StackingMinigame : MonoBehaviour
 
     private void Awake()
     {
+        if (engine == null && PersistentSignEngine.Instance != null)
+            engine = PersistentSignEngine.Instance.Engine;
+
         if (minigameManager == null)
             minigameManager = FindObjectOfType<MinigameManager>();
 
@@ -171,7 +177,6 @@ public class StackingMinigame : MonoBehaviour
             return;
         }
 
-        // Keep polling during Study / Grating / Drop like the old version.
         if (phase != Phase.Inactive && phase != Phase.Success)
         {
             if (frame >= 200)
@@ -189,7 +194,6 @@ public class StackingMinigame : MonoBehaviour
         if (!breadPaused)
             SlideBread();
 
-        // HOTKEY: Skip study -> gameplay
         if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Alpha1))
             && phase == Phase.Study)
         {
@@ -201,7 +205,6 @@ public class StackingMinigame : MonoBehaviour
             BeginGameplay();
         }
 
-        // HOTKEY: Simulate dance
         if ((Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Alpha2))
             && (phase == Phase.Grating || phase == Phase.Study) && !actionLocked)
         {
@@ -219,13 +222,18 @@ public class StackingMinigame : MonoBehaviour
                 StartCoroutine(HandleGrateAttemptFlow());
         }
 
-        // HOTKEY: Simulate cut
         if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Alpha3))
             && (phase == Phase.DropPrompt || phase == Phase.Dropping) && !actionLocked)
         {
             Debug.Log("[Stacking] HOTKEY: Simulate CUT");
             HandleDropAttempt();
         }
+    }
+
+    private void SetInstruction(string message)
+    {
+        if (instructionText != null)
+            instructionText.text = message;
     }
 
     private void InitRecognizerIfNeeded()
@@ -294,7 +302,7 @@ public class StackingMinigame : MonoBehaviour
         }
 
         studyPopup.OpenSession(studySigns);
-        uiManager?.UpdateSteps("Before we start cooking, let's first learn the signs associated!");
+        SetInstruction("Sign \"Dance\" to grate some cheese!");
     }
 
     private void ForceIdleState()
@@ -346,7 +354,7 @@ public class StackingMinigame : MonoBehaviour
         if (attemptsUI != null)
             attemptsUI.ResetAttempts();
 
-        uiManager?.UpdateSteps("Sign 'Dance' when the bread is under the grater.");
+        SetInstruction("Sign \"Dance\" to grate some cheese!");
         Debug.Log("[Stacking] Phase -> GRATING");
     }
 
@@ -448,7 +456,7 @@ public class StackingMinigame : MonoBehaviour
             yield break;
         }
 
-        uiManager?.UpdateSteps("Sign 'Dance' when the bread is under the grater. (" + successes + "/2)");
+        SetInstruction("Sign \"Dance\" to grate some cheese!");
         breadPaused = false;
         actionLocked = false;
     }
@@ -467,7 +475,7 @@ public class StackingMinigame : MonoBehaviour
             Show(topBreadImage);
         }
 
-        uiManager?.UpdateSteps("Sign 'Cut' to place the top slice.");
+        SetInstruction("Perfect, now sign \"Cut\" to place the top slice");
         breadPaused = false;
 
         Debug.Log("[Stacking] Phase -> DROP PROMPT");
@@ -502,7 +510,7 @@ public class StackingMinigame : MonoBehaviour
         {
             Debug.LogWarning("[Stacking] Missing top bread or moving bread rect during drop success.");
             phase = Phase.Success;
-            uiManager?.UpdateSteps("Success!");
+            SetInstruction("Success!");
             minigameManager?.ShowSuccessPopup("Success");
             actionLocked = false;
             yield break;
@@ -531,7 +539,7 @@ public class StackingMinigame : MonoBehaviour
         phase = Phase.Success;
         Debug.Log("[Stacking] SUCCESS STATE REACHED");
 
-        uiManager?.UpdateSteps("Success!");
+        SetInstruction("Success!");
         minigameManager?.ShowSuccessPopup("Success");
         actionLocked = false;
     }
