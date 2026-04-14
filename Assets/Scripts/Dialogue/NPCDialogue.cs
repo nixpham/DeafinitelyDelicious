@@ -18,6 +18,12 @@ public class NPCDialogue : ScriptableObject
 
     public DialogueLine[] kitchenTutorialLines;
     public DialogueLine[] restaurantIntro3Lines;
+
+    public DialogueLine[] restaurantIntroBefore3Lines;
+    public DialogueLine[] restaurantMomReminder3Lines;
+    public DialogueLine[] restaurantGrandmaReminder3Lines;
+    public DialogueLine[] momGrandmaGrilledCheeseDoneLines;
+
     public DialogueLine[] mapEndDemoLines;
 
     [Header("Speakers (define MC + other characters here)")]

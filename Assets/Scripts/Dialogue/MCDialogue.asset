@@ -175,7 +175,40 @@ MonoBehaviour:
     text: "It looks just like how I would\u2019ve made it"
   - speakerId: mom
     text: "It\u2019s very delicious"
-  mapEndDemoLines: []
+  - speakerId: granny
+    text: Here I have something for you
+  - speakerId: mc
+    text: '*Granny hands you a piece of paper*'
+  - speakerId: mc
+    text: What's this?
+  - speakerId: granny
+    text: "It\u2019s to transfer this restaurant to you, I think you\u2019re ready"
+  - speakerId: mom
+    text: Congratulations sweetie! Make sure to explore the area, there are many
+      people excited to meet you
+  restaurantIntroBefore3Lines:
+  - speakerId: tutorial
+    text: Drag your completed dish to the table to serve!
+  restaurantMomReminder3Lines:
+  - speakerId: mom
+    text: I'm kind of a little hungry still, would you mind making another, hun?
+  restaurantGrandmaReminder3Lines:
+  - speakerId: granny
+    text: Go on, make as many as you want!
+  momGrandmaGrilledCheeseDoneLines:
+  - speakerId: mom
+    text: Wow, thanks sweetie!
+  - speakerId: granny
+    text: You're getting better and better!
+  mapEndDemoLines:
+  - speakerId: tutorial
+    text: Good job on your grilled cheese!
+  - speakerId: tutorial
+    text: In the full game, you'd get to continue running the restaurant, unlocking
+      new foods and customers
+  - speakerId: tutorial
+    text: For the demo, though, feel free to continue making as many grilled cheese
+      as your heart desires!
   speakers:
   - id: mc
     displayName: You
