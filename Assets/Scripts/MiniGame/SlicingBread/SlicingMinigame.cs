@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,6 +42,11 @@ public class SlicingMinigame : MonoBehaviour
     [SerializeField] private int requiredSuccessfulSlices = 2;
     [SerializeField] private float straightTolerance = 10f;
 
+    [Header("Cut Animation")]
+    [SerializeField] private float cutMoveDistance = 18f;
+    [SerializeField] private float cutMoveDuration = 0.08f;
+    [SerializeField] private int cutMotionRepeats = 2;
+
     private bool recognizerInitialized;
     private int frame;
 
@@ -48,54 +54,102 @@ public class SlicingMinigame : MonoBehaviour
     private int sliceAttempts;
     private int successfulCuts;
 
+    private bool cutAnimationPlaying;
+
     private Phase phase = Phase.Inactive;
 
     private readonly List<string> recognizerSigns = new() { "dance", "cut" };
     private readonly string[] studySigns = { "dance", "cut" };
 
-    private void Start()
+    private void Awake()
     {
         if (minigameManager == null)
             minigameManager = FindObjectOfType<MinigameManager>();
 
+        ForceIdleVisualState();
+    }
+
+    private void Start()
+    {
         if (engine == null)
             Debug.LogError("[Slicing] Engine is NOT assigned in the inspector.");
+        else
+            Debug.Log("[Slicing] Engine FOUND: " + engine.name);
 
-        ForceIdleVisualState();
-        phase = Phase.Inactive;
+        Debug.Log("[Slicing] Start ran. Phase remains = " + phase);
     }
 
     private void Update()
     {
         InitRecognizerIfNeeded();
 
-        if (phase == Phase.Inactive || phase == Phase.Study || phase == Phase.Success)
+        if (Input.anyKeyDown)
+            Debug.Log("[Slicing] A key was pressed. Current phase = " + phase);
+
+        if (engine == null)
+        {
+            Debug.LogWarning("[Slicing] Engine is NULL");
             return;
+        }
 
-        // Do not use engine until all required internals exist
-        if (engine == null || engine.recognizer == null || engine.buffer == null)
+        if (engine.recognizer == null)
+        {
+            Debug.LogWarning("[Slicing] Recognizer is NULL");
             return;
-
-        if (frame >= 200)
-        {
-            frame = 0;
-            engine.buffer.TriggerCallbacks();
-        }
-        else
-        {
-            frame++;
         }
 
-        // Optional keyboard testing
-        if (Input.GetKeyDown(KeyCode.Space) && phase == Phase.Slice)
+        if (engine.buffer == null)
         {
-            HandleSliceAttempt("cut");
+            Debug.LogWarning("[Slicing] Buffer is NULL");
+            return;
         }
 
-        // Optional keyboard testing for pickup
-        if (Input.GetKeyDown(KeyCode.P) && phase == Phase.Pickup)
+        if (phase != Phase.Inactive && phase != Phase.Success)
         {
+            if (frame >= 200)
+            {
+                frame = 0;
+                Debug.Log("[Slicing] Triggering callbacks (engine running) | phase = " + phase);
+                engine.buffer.TriggerCallbacks();
+            }
+            else
+            {
+                frame++;
+            }
+        }
+
+        if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Alpha1))
+            && phase == Phase.Study)
+        {
+            Debug.Log("[Slicing] HOTKEY: Study -> Pickup");
+
+            if (studyPopup != null && studyPopup.popupRoot != null)
+                studyPopup.popupRoot.SetActive(false);
+
+            BeginPickupPhase();
+        }
+
+        if ((Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Alpha2))
+            && (phase == Phase.Pickup || phase == Phase.Study))
+        {
+            Debug.Log("[Slicing] HOTKEY: Simulate DANCE");
+
+            if (phase == Phase.Study)
+            {
+                if (studyPopup != null && studyPopup.popupRoot != null)
+                    studyPopup.popupRoot.SetActive(false);
+
+                BeginPickupPhase();
+            }
+
             HandlePickupAttempt("dance");
+        }
+
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Alpha3))
+            && phase == Phase.Slice && !cutAnimationPlaying)
+        {
+            Debug.Log("[Slicing] HOTKEY: Simulate CUT");
+            HandleSliceAttempt("cut");
         }
     }
 
@@ -116,26 +170,30 @@ public class SlicingMinigame : MonoBehaviour
         engine.recognizer.outputFilters.Add(new Thresholder<string>(0.1f));
 
         recognizerInitialized = true;
-        Debug.Log("[Slicing] Recognizer initialized.");
+        Debug.Log("[Slicing] Callback successfully registered to recognizer.");
     }
 
     public void OnOpenedByManager()
     {
+        Debug.Log("[Slicing] Minigame OPENED");
         FullReset();
     }
 
     public void OnRedoPressed()
     {
+        Debug.Log("[Slicing] Minigame REDO");
         FullReset();
     }
 
     public void OnNextPressed()
     {
-        // Manager handles closing.
+        Debug.Log("[Slicing] Minigame NEXT pressed");
     }
 
     private void FullReset()
     {
+        StopAllCoroutines();
+        cutAnimationPlaying = false;
         frame = 0;
 
         pickupAttempts = 0;
@@ -143,20 +201,23 @@ public class SlicingMinigame : MonoBehaviour
         successfulCuts = 0;
         phase = Phase.Study;
 
+        Debug.Log("[Slicing] Reset -> Phase = STUDY");
+
         if (attemptsUI != null)
             attemptsUI.ResetAttempts();
 
         ForceIdleVisualState();
         ResetBreadVisual();
-
         OpenStudySession();
     }
 
     private void OpenStudySession()
     {
+        Debug.Log("[Slicing] Opening study session");
+
         if (studyPopup == null)
         {
-            Debug.LogWarning("[Slicing] Study popup missing. Starting gameplay immediately.");
+            Debug.LogWarning("[Slicing] Study popup missing.");
             BeginPickupPhase();
             return;
         }
@@ -178,12 +239,17 @@ public class SlicingMinigame : MonoBehaviour
             knifeRotation.enabled = false;
             knifeRotation.ResetRotation();
         }
+
+        Debug.Log("[Slicing] Forced idle visual state.");
     }
 
     private void BeginPickupPhase()
     {
         phase = Phase.Pickup;
         pickupAttempts = 0;
+        cutAnimationPlaying = false;
+
+        Debug.Log("[Slicing] Phase -> PICKUP");
 
         if (attemptsUI != null)
             attemptsUI.ResetAttempts();
@@ -209,7 +275,10 @@ public class SlicingMinigame : MonoBehaviour
         phase = Phase.Slice;
         sliceAttempts = 0;
         successfulCuts = 0;
+        cutAnimationPlaying = false;
         frame = 0;
+
+        Debug.Log("[Slicing] Phase -> SLICE");
 
         if (attemptsUI != null)
             attemptsUI.ResetAttempts();
@@ -223,6 +292,7 @@ public class SlicingMinigame : MonoBehaviour
         if (knifeRotation != null)
         {
             knifeRotation.ResetRotation();
+            knifeRotation.pauseRotation = false;
             knifeRotation.enabled = true;
         }
 
@@ -232,31 +302,35 @@ public class SlicingMinigame : MonoBehaviour
 
     private void OnSignRecognized(string rawSign)
     {
+        Debug.Log("[Slicing] Callback fired. Raw input = " + rawSign + " | phase = " + phase);
+
         if (phase == Phase.Inactive || phase == Phase.Success)
             return;
 
         if (string.IsNullOrEmpty(rawSign))
             return;
 
-        // While study popup is open, block gameplay
         if (studyPopup != null && studyPopup.popupRoot != null && studyPopup.popupRoot.activeSelf)
+        {
+            Debug.Log("[Slicing] Ignored (study popup open)");
             return;
+        }
 
-        // If study just finished, move into pickup automatically
         if (phase == Phase.Study)
         {
+            Debug.Log("[Slicing] Study finished -> moving to PICKUP");
             BeginPickupPhase();
             return;
         }
 
         string sign = rawSign.ToLowerInvariant();
-        Debug.Log("[Slicing] Recognized sign: " + sign);
+        Debug.Log("🔥 [Slicing] SIGN DETECTED: " + sign);
 
         if (phase == Phase.Pickup)
         {
             HandlePickupAttempt(sign);
         }
-        else if (phase == Phase.Slice)
+        else if (phase == Phase.Slice && !cutAnimationPlaying)
         {
             HandleSliceAttempt(sign);
         }
@@ -266,6 +340,8 @@ public class SlicingMinigame : MonoBehaviour
     {
         pickupAttempts++;
         bool success = sign == "dance";
+
+        Debug.Log("[Slicing] Pickup attempt " + pickupAttempts + " | sign = " + sign + " | success = " + success);
 
         if (attemptsUI != null)
             attemptsUI.RegisterAttempt(success);
@@ -279,32 +355,80 @@ public class SlicingMinigame : MonoBehaviour
 
         if (pickupAttempts >= maxPickupAttempts)
         {
+            Debug.Log("[Slicing] Pickup attempts exhausted -> restarting pickup");
             uiManager?.UpdateSteps("You ran out of pickup tries. Restarting pickup.");
             BeginPickupPhase();
-        }
-        else
-        {
-            int remaining = maxPickupAttempts - pickupAttempts;
-            uiManager?.UpdateSteps($"That was not the right sign. Sign 'Dance' to pick up the knife. {remaining} tries left.");
         }
     }
 
     private void HandleSliceAttempt(string sign)
     {
+        if (sign != "cut")
+        {
+            sliceAttempts++;
+
+            Debug.Log("[Slicing] Slice attempt " + sliceAttempts + " | sign = " + sign + " | knifeStraight = false");
+            Debug.Log("[Slicing] FAILED CUT");
+
+            if (attemptsUI != null)
+                attemptsUI.RegisterAttempt(false);
+
+            if (sliceAttempts >= maxSliceAttempts)
+            {
+                Debug.Log("[Slicing] Slice attempts exhausted -> back to pickup");
+                uiManager?.UpdateSteps("You did not get 2 successful slices in 4 tries. Going back to picking up the knife.");
+                BeginPickupPhase();
+                return;
+            }
+
+            int remainingWrong = maxSliceAttempts - sliceAttempts;
+            int neededWrong = requiredSuccessfulSlices - successfulCuts;
+            uiManager?.UpdateSteps("Need " + neededWrong + " more successful slice(s). Sign 'Cut' when the knife is straight. " + remainingWrong + " tries left.");
+            return;
+        }
+
+        bool knifeStraight = IsKnifeStraight();
+        Debug.Log("[Slicing] CUT detected. knifeStraight at detection = " + knifeStraight);
+
+        StartCoroutine(DoCutAttempt(knifeStraight));
+    }
+
+    private IEnumerator DoCutAttempt(bool success)
+    {
+        cutAnimationPlaying = true;
         sliceAttempts++;
 
-        bool success = false;
+        Vector3 savedLocalPosition = rotatingKnife != null ? rotatingKnife.transform.localPosition : Vector3.zero;
 
-        if (sign == "cut" && IsKnifeStraight())
+        Debug.Log("[Slicing] Saving knife state before cut: angle = "
+            + (knifeRotation != null ? knifeRotation.GetCurrentAngle().ToString("F2") : "N/A")
+            + " direction = "
+            + (knifeRotation != null ? knifeRotation.GetDirection().ToString() : "N/A"));
+
+        if (knifeRotation != null)
+            knifeRotation.pauseRotation = true;
+
+        Vector3 startPos = savedLocalPosition;
+        Vector3 forwardPos = startPos + Vector3.down * cutMoveDistance;
+
+        for (int i = 0; i < cutMotionRepeats; i++)
         {
-            success = true;
+            yield return MoveKnifeLocal(startPos, forwardPos, cutMoveDuration);
+            yield return MoveKnifeLocal(forwardPos, startPos, cutMoveDuration);
+        }
+
+        if (rotatingKnife != null)
+            rotatingKnife.transform.localPosition = savedLocalPosition;
+
+        if (success)
+        {
             successfulCuts++;
             UpdateBreadVisualForCuts();
-            Debug.Log($"[Slicing] Successful cut. ({successfulCuts}/{requiredSuccessfulSlices})");
+            Debug.Log("[Slicing] SUCCESSFUL CUT (" + successfulCuts + "/" + requiredSuccessfulSlices + ")");
         }
         else
         {
-            Debug.Log("[Slicing] Failed cut.");
+            Debug.Log("[Slicing] FAILED CUT");
         }
 
         if (attemptsUI != null)
@@ -312,20 +436,53 @@ public class SlicingMinigame : MonoBehaviour
 
         if (successfulCuts >= requiredSuccessfulSlices)
         {
+            if (knifeRotation != null)
+                knifeRotation.pauseRotation = false;
+
             HandleSuccess();
-            return;
+            cutAnimationPlaying = false;
+            yield break;
         }
 
         if (sliceAttempts >= maxSliceAttempts)
         {
+            Debug.Log("[Slicing] Slice attempts exhausted -> back to pickup");
+
+            if (knifeRotation != null)
+                knifeRotation.pauseRotation = false;
+
             uiManager?.UpdateSteps("You did not get 2 successful slices in 4 tries. Going back to picking up the knife.");
+            cutAnimationPlaying = false;
             BeginPickupPhase();
-            return;
+            yield break;
         }
+
+        if (knifeRotation != null)
+            knifeRotation.pauseRotation = false;
 
         int remaining = maxSliceAttempts - sliceAttempts;
         int needed = requiredSuccessfulSlices - successfulCuts;
-        uiManager?.UpdateSteps($"Need {needed} more successful slice(s). Sign 'Cut' when the knife is straight. {remaining} tries left.");
+        uiManager?.UpdateSteps("Need " + needed + " more successful slice(s). Sign 'Cut' when the knife is straight. " + remaining + " tries left.");
+
+        cutAnimationPlaying = false;
+    }
+
+    private IEnumerator MoveKnifeLocal(Vector3 from, Vector3 to, float duration)
+    {
+        if (rotatingKnife == null)
+            yield break;
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = duration <= 0f ? 1f : elapsed / duration;
+            rotatingKnife.transform.localPosition = Vector3.Lerp(from, to, t);
+            yield return null;
+        }
+
+        rotatingKnife.transform.localPosition = to;
     }
 
     private bool IsKnifeStraight()
@@ -336,14 +493,18 @@ public class SlicingMinigame : MonoBehaviour
         if (rotatingKnife == null)
             return false;
 
-        float z = rotatingKnife.transform.localEulerAngles.z;
-        if (z > 180f) z -= 360f;
+        float z = rotatingKnife.transform.eulerAngles.z;
+        if (z > 180f)
+            z -= 360f;
+
         return Mathf.Abs(z) <= straightTolerance;
     }
 
     private void HandleSuccess()
     {
         phase = Phase.Success;
+
+        Debug.Log("[Slicing] SUCCESS STATE REACHED");
 
         if (knifeRotation != null)
             knifeRotation.enabled = false;
