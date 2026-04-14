@@ -17,7 +17,13 @@ public enum DialogueSequence
     RestaurantMomReminder2,
     RestaurantGrandmaReminder2,
     KitchenTutorial,
+    RestaurantIntroBefore3,
     RestaurantIntro3,
+
+    RestaurantMomReminder3,
+    RestaurantGrandmaReminder3,
+    MomGrandmaGrilledCheeseDone,
+
     MapEndDemo
 }
 
@@ -398,6 +404,18 @@ public class NPC : MonoBehaviour
             case DialogueSequence.KitchenTutorial: return dialogueData.kitchenTutorialLines;
 
             case DialogueSequence.RestaurantIntro3: return dialogueData.restaurantIntro3Lines;
+
+            case DialogueSequence.RestaurantIntroBefore3:
+                return dialogueData.restaurantIntroBefore3Lines;
+
+            case DialogueSequence.RestaurantMomReminder3:
+                return dialogueData.restaurantMomReminder3Lines;
+
+            case DialogueSequence.RestaurantGrandmaReminder3:
+                return dialogueData.restaurantGrandmaReminder3Lines;
+
+            case DialogueSequence.MomGrandmaGrilledCheeseDone:
+                return dialogueData.momGrandmaGrilledCheeseDoneLines;
 
             case DialogueSequence.MapEndDemo: return dialogueData.mapEndDemoLines;
 

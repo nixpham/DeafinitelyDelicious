@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Engine;
+
 public class TutorialSceneRefs : MonoBehaviour
 {
     public enum SceneKind
@@ -39,6 +40,10 @@ public class TutorialSceneRefs : MonoBehaviour
 
     public Button mapButton;
     public Button kitchenButton;
+
+    [Header("Restaurant Serving")]
+    public RectTransform restaurantCompletedGrilledCheeseObject;
+    public RectTransform serveTableDropZone;
 
     [Header("Grandma House UI")]
     public GameObject grandmaHouseSprite;
