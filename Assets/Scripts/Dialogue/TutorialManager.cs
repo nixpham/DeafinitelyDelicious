@@ -102,7 +102,6 @@ public class TutorialManager : MonoBehaviour
         ApplyStepForCurrentScene();
     }
 
-    // *** ADDED: Initialize the sign recognizer with frog filter
     private void InitializeRecognizer()
     {
         if (recognizerInitialized) return;
@@ -111,11 +110,11 @@ public class TutorialManager : MonoBehaviour
         refs.signEngine.recognizer.AddCallback("tutorial", HandleSign);
         refs.signEngine.recognizer.outputFilters.Clear();
         refs.signEngine.recognizer.outputFilters.Add(
-            new FocusSublistFilter<string>(new List<string> { "frog" })
+            new FocusSublistFilter<string>(new List<string> { "cheese" })
         );
 
         recognizerInitialized = true;
-        Debug.Log("Tutorial recognizer initialized with frog filter.");
+        Debug.Log("Tutorial recognizer initialized");
     }
 
     // *** ADDED: Handle recognized sign
