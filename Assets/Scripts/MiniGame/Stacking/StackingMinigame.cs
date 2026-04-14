@@ -43,13 +43,17 @@ public class StackingMinigame : MonoBehaviour
     [SerializeField] private RectTransform rightBound;
     [SerializeField] private float slideSpeed = 1.2f;
 
+    [Header("Alignment Offsets")]
+    [SerializeField] private float graterTargetXOffset = 35f;   // move target slightly right
+    [SerializeField] private float extraGrateTolerance = 15f;   // small extra wiggle room
+
     [Header("Tolerances (px)")]
     [SerializeField] private float grateTolerance = 60f;
     [SerializeField] private float dropTolerance = 110f;
 
     [Header("Drop Anim")]
     [SerializeField] private float topFallDuration = 0.25f;
-    [SerializeField] private float stackYOffset = 16f;
+    [SerializeField] private float stackYOffset = 20f;
 
     [Header("Managers")]
     [SerializeField] private UIManager uiManager;
@@ -402,7 +406,12 @@ public class StackingMinigame : MonoBehaviour
             ));
         }
 
-        bool success = IsAligned(movingBreadRect, graterHandRect, grateTolerance);
+        bool success = IsAligned(
+            movingBreadRect,
+            graterHandRect,
+            grateTolerance + extraGrateTolerance,
+            graterTargetXOffset
+        );
         Debug.Log("[Stacking] Grate result = " + success);
 
         if (success)
@@ -540,13 +549,20 @@ public class StackingMinigame : MonoBehaviour
         movingBreadRect.position = new Vector3(x, currentPos.y, currentPos.z);
     }
 
-    private bool IsAligned(RectTransform a, RectTransform b, float tolerancePx)
+    private bool IsAligned(RectTransform a, RectTransform b, float tolerancePx, float targetXOffset = 0f)
     {
         if (a == null || b == null)
             return false;
 
-        float dx = Mathf.Abs(a.position.x - b.position.x);
-        Debug.Log("[Stacking] dx = " + dx.ToString("F1") + " (tol = " + tolerancePx + ")");
+        float targetX = b.position.x + targetXOffset;
+        float dx = Mathf.Abs(a.position.x - targetX);
+
+        Debug.Log("[Stacking] dx = " + dx.ToString("F1")
+            + " | targetX = " + targetX.ToString("F1")
+            + " | baseX = " + b.position.x.ToString("F1")
+            + " | offset = " + targetXOffset.ToString("F1")
+            + " | tol = " + tolerancePx.ToString("F1"));
+
         return dx <= tolerancePx;
     }
 

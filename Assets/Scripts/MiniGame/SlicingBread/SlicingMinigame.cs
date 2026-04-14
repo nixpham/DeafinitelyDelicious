@@ -292,6 +292,7 @@ public class SlicingMinigame : MonoBehaviour
         if (knifeRotation != null)
         {
             knifeRotation.ResetRotation();
+            knifeRotation.pauseRotation = false;
             knifeRotation.enabled = true;
         }
 
@@ -397,10 +398,17 @@ public class SlicingMinigame : MonoBehaviour
         cutAnimationPlaying = true;
         sliceAttempts++;
 
-        if (knifeRotation != null)
-            knifeRotation.enabled = false;
+        Vector3 savedLocalPosition = rotatingKnife != null ? rotatingKnife.transform.localPosition : Vector3.zero;
 
-        Vector3 startPos = rotatingKnife != null ? rotatingKnife.transform.localPosition : Vector3.zero;
+        Debug.Log("[Slicing] Saving knife state before cut: angle = "
+            + (knifeRotation != null ? knifeRotation.GetCurrentAngle().ToString("F2") : "N/A")
+            + " direction = "
+            + (knifeRotation != null ? knifeRotation.GetDirection().ToString() : "N/A"));
+
+        if (knifeRotation != null)
+            knifeRotation.pauseRotation = true;
+
+        Vector3 startPos = savedLocalPosition;
         Vector3 forwardPos = startPos + Vector3.down * cutMoveDistance;
 
         for (int i = 0; i < cutMotionRepeats; i++)
@@ -410,7 +418,7 @@ public class SlicingMinigame : MonoBehaviour
         }
 
         if (rotatingKnife != null)
-            rotatingKnife.transform.localPosition = startPos;
+            rotatingKnife.transform.localPosition = savedLocalPosition;
 
         if (success)
         {
@@ -428,6 +436,9 @@ public class SlicingMinigame : MonoBehaviour
 
         if (successfulCuts >= requiredSuccessfulSlices)
         {
+            if (knifeRotation != null)
+                knifeRotation.pauseRotation = false;
+
             HandleSuccess();
             cutAnimationPlaying = false;
             yield break;
@@ -436,6 +447,10 @@ public class SlicingMinigame : MonoBehaviour
         if (sliceAttempts >= maxSliceAttempts)
         {
             Debug.Log("[Slicing] Slice attempts exhausted -> back to pickup");
+
+            if (knifeRotation != null)
+                knifeRotation.pauseRotation = false;
+
             uiManager?.UpdateSteps("You did not get 2 successful slices in 4 tries. Going back to picking up the knife.");
             cutAnimationPlaying = false;
             BeginPickupPhase();
@@ -443,7 +458,7 @@ public class SlicingMinigame : MonoBehaviour
         }
 
         if (knifeRotation != null)
-            knifeRotation.enabled = true;
+            knifeRotation.pauseRotation = false;
 
         int remaining = maxSliceAttempts - sliceAttempts;
         int needed = requiredSuccessfulSlices - successfulCuts;
