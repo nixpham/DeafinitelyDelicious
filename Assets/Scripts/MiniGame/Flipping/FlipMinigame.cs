@@ -52,9 +52,10 @@ public class FlipMinigame : MonoBehaviour
     [SerializeField] private float breadDropDuration = 0.4f;
 
     [Header("Flip Animation")]
-    [SerializeField] private float flipHeight = 150f;
+    [SerializeField] private float flipHeight = 200f;
     [SerializeField] private float panFlipHeight = 40f;
     [SerializeField] private float flipDuration = 0.35f;
+    [SerializeField] private float topBreadYOffset = 15f;
 
     [Header("Cooking Settings")]
     [SerializeField] private float cookRatePerSecond = 0.05f;
@@ -74,6 +75,8 @@ public class FlipMinigame : MonoBehaviour
     public SimpleExecutionEngine engine;
 
     private bool recognizerInitialized;
+    private bool actionLocked;
+    private bool waitingForStudyToClose;
     private int frame;
 
     private Side sideDown = Side.Bottom;
@@ -88,11 +91,10 @@ public class FlipMinigame : MonoBehaviour
 
     private Phase phase = Phase.Inactive;
 
-    // flip uses dance + cut too
     private readonly List<string> recognizerSigns = new() { "dance", "cut" };
     private readonly string[] studySigns = { "dance", "cut" };
 
-    private void Start()
+    private void Awake()
     {
         if (panImage != null)
             panRect = panImage.rectTransform;
@@ -110,25 +112,92 @@ public class FlipMinigame : MonoBehaviour
 
         panBasePos = panRect != null ? panRect.anchoredPosition : Vector2.zero;
 
+        if (minigameManager == null)
+            minigameManager = FindObjectOfType<MinigameManager>();
+
         ForceIdleState();
+    }
+
+    private void Start()
+    {
+        if (engine == null)
+            Debug.LogError("[Flip] Engine is NOT assigned in inspector.");
+        else
+            Debug.Log("[Flip] Engine FOUND: " + engine.name);
+
+        Debug.Log("[Flip] Start ran. Phase = " + phase);
     }
 
     private void Update()
     {
         InitRecognizerIfNeeded();
 
-        if (phase != Phase.Cooking)
-            return;
-
-        if (frame >= 200)
+        if (phase == Phase.Study && waitingForStudyToClose)
         {
-            frame = 0;
-            engine.buffer.TriggerCallbacks();
+            bool popupStillOpen = studyPopup != null
+                && studyPopup.popupRoot != null
+                && studyPopup.popupRoot.activeSelf;
+
+            if (!popupStillOpen)
+            {
+                Debug.Log("[Flip] Study popup closed -> starting gameplay");
+                waitingForStudyToClose = false;
+                BeginGameplay();
+                return;
+            }
+        }
+
+        if (Input.anyKeyDown)
+            Debug.Log("[Flip] A key was pressed. Current phase = " + phase);
+
+        if (engine == null)
+        {
+            Debug.LogWarning("[Flip] Engine is NULL");
         }
         else
         {
-            frame++;
+            if (engine.recognizer == null)
+                Debug.LogWarning("[Flip] Recognizer is NULL");
+
+            if (engine.buffer == null)
+                Debug.LogWarning("[Flip] Buffer is NULL");
         }
+
+        if (phase != Phase.Inactive && phase != Phase.Success)
+        {
+            if (engine != null && engine.buffer != null)
+            {
+                if (frame >= 200)
+                {
+                    frame = 0;
+                    Debug.Log("[Flip] Triggering callbacks | phase = " + phase);
+                    engine.buffer.TriggerCallbacks();
+                }
+                else
+                {
+                    frame++;
+                }
+            }
+        }
+
+        // HOTKEY: Simulate dance / flip
+        if ((Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Alpha2))
+            && phase == Phase.Cooking && !actionLocked)
+        {
+            Debug.Log("[Flip] HOTKEY: Simulate DANCE / Flip");
+            StartCoroutine(FlipSandwichFX());
+        }
+
+        // HOTKEY: Simulate cut / finish
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Alpha3))
+            && phase == Phase.Cooking && !actionLocked)
+        {
+            Debug.Log("[Flip] HOTKEY: Simulate CUT");
+            HandleCut();
+        }
+
+        if (phase != Phase.Cooking)
+            return;
 
         if (isCooking)
         {
@@ -146,41 +215,60 @@ public class FlipMinigame : MonoBehaviour
 
     private void InitRecognizerIfNeeded()
     {
-        if (recognizerInitialized || engine == null)
+        if (recognizerInitialized)
+            return;
+
+        if (engine == null)
+            return;
+
+        if (engine.recognizer == null || engine.buffer == null)
             return;
 
         engine.recognizer.AddCallback("print", OnSignRecognized);
         engine.recognizer.outputFilters.Clear();
         engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(recognizerSigns));
         engine.recognizer.outputFilters.Add(new Thresholder<string>(0.1f));
+
         recognizerInitialized = true;
+        Debug.Log("[Flip] Callback successfully registered to recognizer.");
     }
 
     public void OnOpenedByManager()
     {
+        Debug.Log("[Flip] Minigame OPENED");
         FullReset();
     }
 
     public void OnRedoPressed()
     {
+        Debug.Log("[Flip] Minigame REDO");
         FullReset();
     }
 
     public void OnNextPressed()
     {
-        // Manager handles closing.
+        Debug.Log("[Flip] Minigame NEXT pressed");
     }
 
     private void FullReset()
     {
         StopAllCoroutines();
+
+        frame = 0;
+        actionLocked = false;
+        waitingForStudyToClose = false;
+
         ForceIdleState();
         phase = Phase.Study;
+
+        Debug.Log("[Flip] Reset -> Phase = STUDY");
         OpenStudySession();
     }
 
     private void OpenStudySession()
     {
+        Debug.Log("[Flip] Opening study session");
+
         if (studyPopup == null)
         {
             Debug.LogWarning("[Flip] Study popup missing. Starting gameplay immediately.");
@@ -189,6 +277,7 @@ public class FlipMinigame : MonoBehaviour
         }
 
         studyPopup.OpenSession(studySigns);
+        waitingForStudyToClose = true;
         uiManager?.UpdateSteps("Before we start cooking, let's first learn the signs associated!");
     }
 
@@ -198,6 +287,7 @@ public class FlipMinigame : MonoBehaviour
         topCook = 0f;
         sideDown = Side.Bottom;
         isCooking = false;
+        actionLocked = false;
         phase = Phase.Inactive;
 
         if (panImage != null && panIdleSprite != null)
@@ -211,13 +301,24 @@ public class FlipMinigame : MonoBehaviour
             sandwichGroup.gameObject.SetActive(false);
             sandwichGroup.anchoredPosition = sandwichFinalPos;
             sandwichGroup.localEulerAngles = Vector3.zero;
+            sandwichGroup.localScale = Vector3.one;
         }
 
-        if (topBreadImage != null && breadRawSprite != null)
-            topBreadImage.sprite = breadRawSprite;
+        if (topBreadImage != null)
+        {
+            topBreadImage.transform.SetSiblingIndex(1);
+            RectTransform rt = topBreadImage.rectTransform;
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, topBreadYOffset);
+        }
 
-        if (bottomBreadImage != null && breadRawSprite != null)
-            bottomBreadImage.sprite = breadRawSprite;
+        if (bottomBreadImage != null)
+        {
+            bottomBreadImage.transform.SetSiblingIndex(0);
+            RectTransform rt = bottomBreadImage.rectTransform;
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, 0f);
+        }
+
+        UpdateBreadSprites();
 
         if (butterImage != null)
         {
@@ -239,11 +340,14 @@ public class FlipMinigame : MonoBehaviour
 
         if (attemptsUI != null)
             attemptsUI.ResetAttempts();
+
+        Debug.Log("[Flip] Forced idle state.");
     }
 
     private void BeginGameplay()
     {
         StopAllCoroutines();
+        Debug.Log("[Flip] BeginGameplay -> starting intro sequence");
         StartCoroutine(IntroSequence());
     }
 
@@ -251,7 +355,9 @@ public class FlipMinigame : MonoBehaviour
     {
         phase = Phase.Intro;
         isCooking = false;
+        actionLocked = true;
 
+        Debug.Log("[Flip] Phase -> INTRO");
         uiManager?.UpdateSteps("Butter is melting...");
 
         if (sandwichGroup != null)
@@ -262,6 +368,7 @@ public class FlipMinigame : MonoBehaviour
         if (butterImage != null && butterMeltedSprite != null)
         {
             butterImage.sprite = butterMeltedSprite;
+            Debug.Log("[Flip] Butter melted");
             yield return new WaitForSeconds(butterMeltDuration);
         }
 
@@ -289,20 +396,31 @@ public class FlipMinigame : MonoBehaviour
 
         phase = Phase.Cooking;
         isCooking = true;
+        actionLocked = false;
+
+        Debug.Log("[Flip] Phase -> COOKING");
         uiManager?.UpdateSteps("Sandwich is cooking! Sign 'Dance' to flip. When both sides are green, sign 'Cut'.");
     }
 
     private void OnSignRecognized(string raw)
     {
+        Debug.Log("[Flip] Callback fired. Raw input = " + raw + " | phase = " + phase);
+
         if (phase == Phase.Success || phase == Phase.Inactive)
             return;
 
-        if (studyPopup != null && studyPopup.popupRoot != null && studyPopup.popupRoot.activeSelf)
+        if (string.IsNullOrEmpty(raw))
             return;
 
         if (phase == Phase.Study)
         {
-            BeginGameplay();
+            Debug.Log("[Flip] Ignored recognizer input during study.");
+            return;
+        }
+
+        if (studyPopup != null && studyPopup.popupRoot != null && studyPopup.popupRoot.activeSelf)
+        {
+            Debug.Log("[Flip] Ignored (study popup open)");
             return;
         }
 
@@ -310,15 +428,15 @@ public class FlipMinigame : MonoBehaviour
             return;
 
         string sign = raw.ToLowerInvariant();
+        Debug.Log("[Flip] SIGN DETECTED: " + sign);
 
-        if (sign == "dance")
+        if (sign == "dance" && !actionLocked)
         {
-            if (isCooking)
-                StartCoroutine(FlipSandwichFX());
+            StartCoroutine(FlipSandwichFX());
             return;
         }
 
-        if (sign == "cut")
+        if (sign == "cut" && !actionLocked)
         {
             HandleCut();
         }
@@ -329,52 +447,123 @@ public class FlipMinigame : MonoBehaviour
         if (sandwichGroup == null)
             yield break;
 
+        actionLocked = true;
+
         Vector2 startPos = sandwichGroup.anchoredPosition;
         Vector2 peakPos = startPos + new Vector2(0f, flipHeight);
 
         Vector2 panStart = panBasePos;
         Vector2 panPeak = panStart + new Vector2(0f, panFlipHeight);
 
+        float halfDuration = Mathf.Max(0.01f, flipDuration * 0.5f);
         float t = 0f;
         bool previousCooking = isCooking;
         isCooking = false;
 
+        Debug.Log("[Flip] Starting flip animation");
+
         if (panImage != null && panFlipSprite != null)
             panImage.sprite = panFlipSprite;
 
-        while (t < flipDuration * 0.5f)
+        while (t < halfDuration)
         {
             t += Time.deltaTime;
-            float u = t / (flipDuration * 0.5f);
+            float u = Mathf.Clamp01(t / halfDuration);
 
             sandwichGroup.anchoredPosition = Vector2.Lerp(startPos, peakPos, u);
 
             if (panRect != null)
                 panRect.anchoredPosition = Vector2.Lerp(panStart, panPeak, u);
 
+            sandwichGroup.localScale = Vector3.Lerp(
+                Vector3.one,
+                new Vector3(0.92f, 1.08f, 1f),
+                u
+            );
+
             yield return null;
         }
 
-        sandwichGroup.localEulerAngles = new Vector3(0f, 0f, 180f);
+        Side cookedSide = sideDown;
         sideDown = sideDown == Side.Bottom ? Side.Top : Side.Bottom;
+
+        UpdateBreadSprites();
+        SetVisibleTopSide(cookedSide);
         UpdateBreadSprites();
 
+        float cookedSideValue = cookedSide == Side.Bottom ? bottomCook : topCook;
+
+        Debug.Log("[Flip] Sandwich flipped. Visible top = " + cookedSide
+            + " | revealed cook value = " + cookedSideValue.ToString("F2")
+            + " | now cooking bottom = " + sideDown);
+
+        if (cookedSideValue >= burnThreshold)
+        {
+            Debug.Log("[Flip] Newly revealed top side is burnt -> restarting");
+
+            sandwichGroup.localScale = Vector3.one;
+            sandwichGroup.anchoredPosition = peakPos;
+
+            t = 0f;
+            while (t < halfDuration)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / halfDuration);
+
+                sandwichGroup.anchoredPosition = Vector2.Lerp(peakPos, startPos, u);
+
+                if (panRect != null)
+                    panRect.anchoredPosition = Vector2.Lerp(panPeak, panStart, u);
+
+                sandwichGroup.localScale = Vector3.Lerp(
+                    new Vector3(0.92f, 1.08f, 1f),
+                    Vector3.one,
+                    u
+                );
+
+                yield return null;
+            }
+
+            sandwichGroup.anchoredPosition = startPos;
+            sandwichGroup.localScale = Vector3.one;
+
+            if (panRect != null)
+                panRect.anchoredPosition = panBasePos;
+
+            if (panImage != null && panIdleSprite != null)
+                panImage.sprite = panIdleSprite;
+
+            uiManager?.UpdateSteps("That side is burnt. Restarting from the butter.");
+            if (attemptsUI != null)
+                attemptsUI.RegisterAttempt(false);
+
+            yield return new WaitForSeconds(0.35f);
+            RestartGameplayOnly();
+            yield break;
+        }
+
         t = 0f;
-        while (t < flipDuration * 0.5f)
+        while (t < halfDuration)
         {
             t += Time.deltaTime;
-            float u = t / (flipDuration * 0.5f);
+            float u = Mathf.Clamp01(t / halfDuration);
 
             sandwichGroup.anchoredPosition = Vector2.Lerp(peakPos, startPos, u);
 
             if (panRect != null)
                 panRect.anchoredPosition = Vector2.Lerp(panPeak, panStart, u);
 
+            sandwichGroup.localScale = Vector3.Lerp(
+                new Vector3(0.92f, 1.08f, 1f),
+                Vector3.one,
+                u
+            );
+
             yield return null;
         }
 
-        sandwichGroup.localEulerAngles = Vector3.zero;
         sandwichGroup.anchoredPosition = startPos;
+        sandwichGroup.localScale = Vector3.one;
 
         if (panRect != null)
             panRect.anchoredPosition = panBasePos;
@@ -383,6 +572,7 @@ public class FlipMinigame : MonoBehaviour
             panImage.sprite = panIdleSprite;
 
         isCooking = previousCooking;
+        actionLocked = false;
 
         string sideName = sideDown == Side.Bottom ? "bottom" : "top";
         uiManager?.UpdateSteps($"Now cooking the {sideName} side. Sign 'Dance' to flip. Sign 'Cut' when both sides are green.");
@@ -394,6 +584,7 @@ public class FlipMinigame : MonoBehaviour
         if (phase != Phase.Cooking)
             return;
 
+        actionLocked = true;
         isCooking = false;
 
         bool bottomGood = IsGood(bottomCook);
@@ -406,6 +597,12 @@ public class FlipMinigame : MonoBehaviour
 
         UpdateBreadSprites();
 
+        Debug.Log("[Flip] CUT pressed | bottomCook = " + bottomCook.ToString("F2")
+            + " | topCook = " + topCook.ToString("F2")
+            + " | bottomGood = " + bottomGood
+            + " | topGood = " + topGood
+            + " | anyBurnt = " + anyBurnt);
+
         if (bothGood)
         {
             phase = Phase.Success;
@@ -413,8 +610,10 @@ public class FlipMinigame : MonoBehaviour
             if (attemptsUI != null)
                 attemptsUI.RegisterAttempt(true);
 
+            Debug.Log("[Flip] SUCCESS STATE REACHED");
             uiManager?.UpdateSteps("Success!");
             minigameManager?.ShowSuccessPopup("Success");
+            actionLocked = false;
         }
         else
         {
@@ -422,12 +621,46 @@ public class FlipMinigame : MonoBehaviour
                 attemptsUI.RegisterAttempt(false);
 
             if (anyBurnt)
+            {
+                Debug.Log("[Flip] Failed: sandwich burnt");
                 uiManager?.UpdateSteps("The sandwich got burnt. Restarting from the butter.");
+            }
             else
+            {
+                Debug.Log("[Flip] Failed: both sides were not ready");
                 uiManager?.UpdateSteps("Both sides were not green yet. Restarting from the butter.");
+            }
 
             StartCoroutine(RestartAfterDelay(0.8f));
         }
+    }
+
+    private void SetVisibleTopSide(Side topSide)
+    {
+        if (topBreadImage == null || bottomBreadImage == null)
+            return;
+
+        RectTransform topRT = topBreadImage.rectTransform;
+        RectTransform bottomRT = bottomBreadImage.rectTransform;
+
+        if (topSide == Side.Top)
+        {
+            topBreadImage.transform.SetSiblingIndex(1);
+            bottomBreadImage.transform.SetSiblingIndex(0);
+
+            topRT.anchoredPosition = new Vector2(topRT.anchoredPosition.x, topBreadYOffset);
+            bottomRT.anchoredPosition = new Vector2(bottomRT.anchoredPosition.x, 0f);
+        }
+        else
+        {
+            bottomBreadImage.transform.SetSiblingIndex(1);
+            topBreadImage.transform.SetSiblingIndex(0);
+
+            bottomRT.anchoredPosition = new Vector2(bottomRT.anchoredPosition.x, topBreadYOffset);
+            topRT.anchoredPosition = new Vector2(topRT.anchoredPosition.x, 0f);
+        }
+
+        Debug.Log("[Flip] Visible top side set to: " + topSide);
     }
 
     private bool IsGood(float value)
@@ -453,9 +686,9 @@ public class FlipMinigame : MonoBehaviour
 
         if (cookFillImage != null)
         {
-            if (currentCook >= burnThreshold)
+            if (currentCook > goodMax)
                 cookFillImage.color = RedColor();
-            else if (currentCook >= goodMin && currentCook <= goodMax)
+            else if (currentCook >= goodMin)
                 cookFillImage.color = GreenColor();
             else
                 cookFillImage.color = YellowColor();
@@ -475,10 +708,10 @@ public class FlipMinigame : MonoBehaviour
 
     private Sprite SpriteForCook(float cookValue)
     {
-        if (cookValue >= burnThreshold && breadBurntSprite != null)
+        if (cookValue > goodMax && breadBurntSprite != null)
             return breadBurntSprite;
 
-        if (cookValue >= goodMin && cookValue <= goodMax && breadGoodSprite != null)
+        if (cookValue >= goodMin && breadGoodSprite != null)
             return breadGoodSprite;
 
         return breadRawSprite;
@@ -492,6 +725,8 @@ public class FlipMinigame : MonoBehaviour
 
     private void RestartGameplayOnly()
     {
+        Debug.Log("[Flip] RestartGameplayOnly called.");
+
         StopAllCoroutines();
         ForceIdleState();
         BeginGameplay();
