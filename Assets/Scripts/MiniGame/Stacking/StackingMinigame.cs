@@ -7,6 +7,16 @@ using Common;
 
 public class StackingMinigame : MonoBehaviour
 {
+    private enum Phase
+    {
+        Inactive,
+        Study,
+        Grating,
+        DropPrompt,
+        Dropping,
+        Success
+    }
+
     [Header("UI Images")]
     [SerializeField] private Image graterHandImage;
     [SerializeField] private Image cheeseHandImage;
@@ -34,8 +44,8 @@ public class StackingMinigame : MonoBehaviour
     [SerializeField] private float slideSpeed = 1.2f;
 
     [Header("Tolerances (px)")]
-    [SerializeField] private float grateTolerance = 60f;   // “dance”
-    [SerializeField] private float dropTolerance = 110f;   // “cut”
+    [SerializeField] private float grateTolerance = 60f;
+    [SerializeField] private float dropTolerance = 110f;
 
     [Header("Drop Anim")]
     [SerializeField] private float topFallDuration = 0.25f;
@@ -44,180 +54,260 @@ public class StackingMinigame : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private UIManager uiManager;
     [SerializeField] private MinigameManager minigameManager;
+    [SerializeField] private StudySessionPopup studyPopup;
 
     [Header("Recognizer")]
     public SimpleExecutionEngine engine;
 
-    bool initRecognizer;
-    int frame;
-    int attempts;      // max 4 (grating attempts)
-    int successes;     // need 2
-    bool breadPaused;
-    Vector2 cheeseHandStartAnchored;
+    private bool recognizerInitialized;
+    private int frame;
+    private int attempts;
+    private int successes;
+    private bool breadPaused;
+    private Vector2 cheeseHandStartAnchored;
 
-    enum Phase { Grating, DropPrompt, Dropping, Done }
-    Phase phase = Phase.Grating;
+    private Phase phase = Phase.Inactive;
 
-    readonly List<string> levelSigns = new() { "dance", "cut" };
+    private readonly List<string> recognizerSigns = new() { "dance", "cut" };
+    private readonly string[] studySigns = { "dance", "cut" };
 
-    // ---------- helpers ----------
-    static void Show(Image img)
+    private static void Show(Image img)
     {
         if (!img) return;
-        var c = img.color; c.a = 1f; img.color = c;
+        var c = img.color;
+        c.a = 1f;
+        img.color = c;
         img.enabled = true;
         img.gameObject.SetActive(true);
         img.transform.SetAsLastSibling();
     }
 
-    static void Hide(Image img)
+    private static void Hide(Image img)
     {
         if (!img) return;
         img.enabled = false;
+        img.gameObject.SetActive(false);
     }
 
-    static void SetSprite(Image img, Sprite s)
+    private static void SetSprite(Image img, Sprite s)
     {
         if (!img) return;
         img.sprite = s;
-        var c = img.color; c.a = 1f; img.color = c;
+        var c = img.color;
+        c.a = 1f;
+        img.color = c;
     }
 
-    static void ForceSize(RectTransform rt, Vector2 size)
+    private static void ForceSize(RectTransform rt, Vector2 size)
     {
         if (!rt) return;
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
     }
 
-    void LogRect(string label, RectTransform rt)
+    private Vector2 BreadSize()
     {
-        if (!rt) return;
-        var r = rt.rect;
-        Debug.Log($"[Stacking] {label} pos={rt.position} size=({r.width:F1},{r.height:F1}) sibling={rt.GetSiblingIndex()}");
+        if (movingBreadRect != null)
+            return new Vector2(Mathf.Max(1, movingBreadRect.rect.width), Mathf.Max(1, movingBreadRect.rect.height));
+
+        return new Vector2(220, 120);
     }
 
-    Vector2 BreadSize() =>
-        movingBreadRect ? new Vector2(Mathf.Max(1, movingBreadRect.rect.width), Mathf.Max(1, movingBreadRect.rect.height))
-                        : new Vector2(220, 120);
-
-    void Start()
+    private void Start()
     {
-        if (!graterHandImage || !cheeseHandImage || !movingBreadImage)
-            Debug.LogWarning("[Stacking] Missing one or more required Image refs.");
+        cheeseHandStartAnchored = cheeseHandImage != null
+            ? cheeseHandImage.rectTransform.anchoredPosition
+            : Vector2.zero;
 
-        // Setup initial sprites
-        SetSprite(graterHandImage, graterHandSprite); Show(graterHandImage);
-        SetSprite(cheeseHandImage, cheeseHandSprite); Show(cheeseHandImage);
-        cheeseHandStartAnchored = cheeseHandImage.rectTransform.anchoredPosition;
+        ForceIdleState();
+    }
 
-        SetSprite(cheeseFallingImage, cheeseFallingSprite); Hide(cheeseFallingImage);
-        SetSprite(movingBreadImage, breadSlideSprite); Show(movingBreadImage);
+    private void Update()
+    {
+        InitRecognizerIfNeeded();
 
-        if (cheesePileImage)
+        if (phase == Phase.Inactive || phase == Phase.Study || phase == Phase.Success)
+            return;
+
+        if (frame >= 200)
         {
-            if (movingBreadImage && cheesePileImage.transform.parent != movingBreadImage.transform)
-                cheesePileImage.rectTransform.SetParent(movingBreadImage.rectTransform, false);
-            cheesePileImage.rectTransform.anchoredPosition = Vector2.zero;
-            Hide(cheesePileImage);
-            cheesePileImage.sprite = null;
+            frame = 0;
+            engine.buffer.TriggerCallbacks();
+        }
+        else
+        {
+            frame++;
         }
 
-        if (topBreadImage)
+        if (!breadPaused)
+            SlideBread();
+    }
+
+    private void InitRecognizerIfNeeded()
+    {
+        if (recognizerInitialized || engine == null)
+            return;
+
+        engine.recognizer.AddCallback("print", OnSignRecognized);
+        engine.recognizer.outputFilters.Clear();
+        engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(recognizerSigns));
+        engine.recognizer.outputFilters.Add(new Thresholder<string>(0.1f));
+        recognizerInitialized = true;
+    }
+
+    public void OnOpenedByManager()
+    {
+        FullReset();
+    }
+
+    public void OnRedoPressed()
+    {
+        FullReset();
+    }
+
+    public void OnNextPressed()
+    {
+        // Manager handles closing.
+    }
+
+    private void FullReset()
+    {
+        StopAllCoroutines();
+
+        attempts = 0;
+        successes = 0;
+        breadPaused = false;
+        phase = Phase.Study;
+
+        ForceIdleState();
+        OpenStudySession();
+    }
+
+    private void OpenStudySession()
+    {
+        if (studyPopup == null)
+        {
+            Debug.LogWarning("[Stacking] Study popup missing. Starting gameplay immediately.");
+            BeginGameplay();
+            return;
+        }
+
+        studyPopup.OpenSession(studySigns);
+        uiManager?.UpdateSteps("Before we start cooking, let's first learn the signs associated!");
+    }
+
+    private void ForceIdleState()
+    {
+        SetSprite(graterHandImage, graterHandSprite);
+        Show(graterHandImage);
+
+        SetSprite(cheeseHandImage, cheeseHandSprite);
+        Show(cheeseHandImage);
+        if (cheeseHandImage != null)
+            cheeseHandImage.rectTransform.anchoredPosition = cheeseHandStartAnchored;
+
+        SetSprite(cheeseFallingImage, cheeseFallingSprite);
+        Hide(cheeseFallingImage);
+
+        SetSprite(movingBreadImage, breadSlideSprite);
+        Show(movingBreadImage);
+
+        if (cheesePileImage != null)
+        {
+            if (movingBreadImage != null && cheesePileImage.transform.parent != movingBreadImage.transform)
+                cheesePileImage.rectTransform.SetParent(movingBreadImage.rectTransform, false);
+
+            cheesePileImage.rectTransform.anchoredPosition = Vector2.zero;
+            cheesePileImage.sprite = null;
+            Hide(cheesePileImage);
+        }
+
+        if (topBreadImage != null)
         {
             SetSprite(topBreadImage, breadSlideSprite);
             Hide(topBreadImage);
         }
 
+        if (attemptsUI != null)
+            attemptsUI.ResetAttempts();
+    }
+
+    private void BeginGameplay()
+    {
         attempts = 0;
         successes = 0;
         breadPaused = false;
         phase = Phase.Grating;
 
-        uiManager?.UpdateSteps("Sign 'Dance' when the bread is under the grater.");
-        Debug.Log("[Stacking] Ready. Waiting for 'dance'...");
+        if (attemptsUI != null)
+            attemptsUI.ResetAttempts();
 
-        // << NEW: Reset attempt circles
-        if (attemptsUI != null) attemptsUI.ResetAttempts();
+        uiManager?.UpdateSteps("Sign 'Dance' when the bread is under the grater.");
     }
 
-    void Update()
+    private void OnSignRecognized(string raw)
     {
-        if (!initRecognizer)
+        if (phase == Phase.Inactive || phase == Phase.Success)
+            return;
+
+        if (studyPopup != null && studyPopup.popupRoot != null && studyPopup.popupRoot.activeSelf)
+            return;
+
+        if (phase == Phase.Study)
         {
-            engine.recognizer.AddCallback("print", OnSignRecognized);
-            engine.recognizer.outputFilters.Clear();
-            engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(levelSigns));
-            engine.recognizer.outputFilters.Add(new Thresholder<string>(0.1f));
-            initRecognizer = true;
-            Debug.Log("[Stacking] Recognizer initialized.");
+            BeginGameplay();
+            return;
         }
 
-        if (frame == 200) { frame = 0; engine.buffer.TriggerCallbacks(); }
-        else frame++;
+        string sign = raw.ToLowerInvariant();
 
-        if (!breadPaused) SlideBread();
-    }
-
-    void OnSignRecognized(string raw)
-    {
-        Debug.Log("[Stacking] Recognized sign: " + raw);
-        string s = raw.ToLowerInvariant();
-
-        if (phase == Phase.Grating && s == "dance")
+        if (phase == Phase.Grating && sign == "dance")
         {
             StartCoroutine(HandleGrateAttemptFlow());
             return;
         }
 
-        if ((phase == Phase.DropPrompt || phase == Phase.Dropping) && s == "cut")
+        if ((phase == Phase.DropPrompt || phase == Phase.Dropping) && sign == "cut")
         {
             HandleDropAttempt();
-            return;
         }
     }
 
-    IEnumerator HandleGrateAttemptFlow()
+    private IEnumerator HandleGrateAttemptFlow()
     {
         breadPaused = true;
-
-        int nextAttempt = Mathf.Min(attempts + 1, 4);
-        attempts = nextAttempt;
-
-        Debug.Log($"[Stacking] Grate attempt {attempts}/4");
+        attempts = Mathf.Min(attempts + 1, 4);
 
         yield return StartCoroutine(PunchHandVertical(
             cheeseHandImage.rectTransform,
             cheeseHandStartAnchored,
-            -40f, 0.12f
+            -40f,
+            0.12f
         ));
 
         bool ok = IsAligned(movingBreadRect, graterHandRect, grateTolerance);
+
         if (ok)
         {
             successes = Mathf.Min(successes + 1, 2);
-            Debug.Log($"[Stacking] SUCCESS grate ({successes}/2).");
             UpdateCheesePile();
             yield return StartCoroutine(CheeseFallingFX());
         }
         else
         {
-            Debug.Log("[Stacking] FAIL grate.");
             yield return StartCoroutine(MissJitter(graterHandImage.rectTransform));
         }
 
-        // << NEW: Update attempt circle
-        if (attemptsUI != null) attemptsUI.RegisterAttempt(ok);
+        if (attemptsUI != null)
+            attemptsUI.RegisterAttempt(ok);
 
         if (successes >= 2)
         {
-            Debug.Log("[Stacking] Entering drop phase.");
             EnterDropPhase();
         }
         else if (attempts >= 4)
         {
-            Debug.Log("[Stacking] Out of attempts → Restart.");
-            RestartMinigame();
+            RestartGameplayOnly();
         }
         else
         {
@@ -226,7 +316,7 @@ public class StackingMinigame : MonoBehaviour
         }
     }
 
-    void EnterDropPhase()
+    private void EnterDropPhase()
     {
         phase = Phase.DropPrompt;
 
@@ -234,7 +324,7 @@ public class StackingMinigame : MonoBehaviour
         Hide(cheeseHandImage);
         Hide(graterHandImage);
 
-        if (topBreadImage)
+        if (topBreadImage != null)
         {
             ForceSize(topBreadImage.rectTransform, BreadSize());
             topBreadImage.transform.SetAsLastSibling();
@@ -245,30 +335,27 @@ public class StackingMinigame : MonoBehaviour
         breadPaused = false;
     }
 
-    void HandleDropAttempt()
+    private void HandleDropAttempt()
     {
         phase = Phase.Dropping;
-        Debug.Log("[Stacking] Drop attempt...");
 
         bool ok = IsAligned(movingBreadRect, topBreadImage.rectTransform, dropTolerance);
         if (ok)
         {
-            Debug.Log("[Stacking] DROP aligned.");
             StartCoroutine(DropSuccessFlow());
         }
         else
         {
-            Debug.Log("[Stacking] DROP FAILED → Restart.");
-            RestartMinigame();
+            RestartGameplayOnly();
         }
     }
 
-    IEnumerator DropSuccessFlow()
+    private IEnumerator DropSuccessFlow()
     {
         breadPaused = true;
 
-        var startPos = topBreadImage.rectTransform.position;
-        var targetY = movingBreadRect.position.y + stackYOffset;
+        Vector3 startPos = topBreadImage.rectTransform.position;
+        float targetY = movingBreadRect.position.y + stackYOffset;
 
         float t = 0f;
         while (t < topFallDuration)
@@ -287,30 +374,33 @@ public class StackingMinigame : MonoBehaviour
             yield return null;
         }
 
-        uiManager?.UpdateSteps("Nice! Sandwich stacked.");
-        Debug.Log("[Stacking] Success → closing.");
-
-        EndMinigame();
+        phase = Phase.Success;
+        uiManager?.UpdateSteps("Success!");
+        minigameManager?.ShowSuccessPopup("Success");
     }
 
-    void SlideBread()
+    private void SlideBread()
     {
-        if (!movingBreadRect || !leftBound || !rightBound) return;
+        if (movingBreadRect == null || leftBound == null || rightBound == null)
+            return;
 
         float t = Mathf.PingPong(Time.time * slideSpeed, 1f);
         movingBreadRect.position = Vector3.Lerp(leftBound.position, rightBound.position, t);
     }
 
-    bool IsAligned(RectTransform a, RectTransform b, float tolPx)
+    private bool IsAligned(RectTransform a, RectTransform b, float tolerancePx)
     {
+        if (a == null || b == null)
+            return false;
+
         float dx = Mathf.Abs(a.position.x - b.position.x);
-        Debug.Log($"[Stacking] dx={dx:F1} (tol={tolPx})");
-        return dx <= tolPx;
+        return dx <= tolerancePx;
     }
 
-    void UpdateCheesePile()
+    private void UpdateCheesePile()
     {
-        if (!cheesePileImage) return;
+        if (cheesePileImage == null)
+            return;
 
         if (cheesePileImage.transform.parent != movingBreadImage.transform)
             cheesePileImage.rectTransform.SetParent(movingBreadImage.rectTransform, false);
@@ -318,43 +408,46 @@ public class StackingMinigame : MonoBehaviour
         cheesePileImage.rectTransform.anchoredPosition = Vector2.zero;
         ForceSize(cheesePileImage.rectTransform, BreadSize() * 0.6f);
 
-        if (successes == 1) SetSprite(cheesePileImage, cheesePileSmallSprite);
-        else if (successes >= 2) SetSprite(cheesePileImage, cheesePileMedSprite);
+        if (successes == 1)
+            SetSprite(cheesePileImage, cheesePileSmallSprite);
+        else if (successes >= 2)
+            SetSprite(cheesePileImage, cheesePileMedSprite);
 
         Show(cheesePileImage);
     }
 
-    IEnumerator CheeseFallingFX()
+    private IEnumerator CheeseFallingFX()
     {
-        if (!cheeseFallingImage) yield break;
+        if (cheeseFallingImage == null)
+            yield break;
 
         ForceSize(cheeseFallingImage.rectTransform, new Vector2(64, 64));
         Show(cheeseFallingImage);
 
-        Vector3 startPos = new Vector3(graterHandRect.position.x, graterHandRect.position.y - 10f, 0);
-        Vector3 endPos = new Vector3(movingBreadRect.position.x, movingBreadRect.position.y + 5f, 0);
+        Vector3 startPos = new Vector3(graterHandRect.position.x, graterHandRect.position.y - 10f, 0f);
+        Vector3 endPos = new Vector3(movingBreadRect.position.x, movingBreadRect.position.y + 5f, 0f);
 
         cheeseFallingImage.rectTransform.position = startPos;
 
-        const float dur = 0.25f;
+        const float duration = 0.25f;
         float t = 0f;
-        while (t < dur)
+        while (t < duration)
         {
             t += Time.deltaTime;
-            float u = t / dur;
+            float u = t / duration;
 
             endPos.x = movingBreadRect.position.x;
             cheeseFallingImage.rectTransform.position = Vector3.Lerp(startPos, endPos, u);
-
             yield return null;
         }
 
         Hide(cheeseFallingImage);
     }
 
-    IEnumerator PunchHandVertical(RectTransform rt, Vector2 basePos, float downOffset, float duration)
+    private IEnumerator PunchHandVertical(RectTransform rt, Vector2 basePos, float downOffset, float duration)
     {
-        if (!rt) yield break;
+        if (rt == null)
+            yield break;
 
         Vector2 start = basePos;
         Vector2 down = start + new Vector2(0f, downOffset);
@@ -378,77 +471,39 @@ public class StackingMinigame : MonoBehaviour
         rt.anchoredPosition = start;
     }
 
-    IEnumerator MissJitter(RectTransform rt)
+    private IEnumerator MissJitter(RectTransform rt)
     {
-        if (!rt) yield break;
+        if (rt == null)
+            yield break;
 
         Vector3 orig = rt.localScale;
         Vector3 up = orig * 1.05f;
 
-        const float dur = 0.08f;
+        const float duration = 0.08f;
         float t = 0f;
 
-        while (t < dur)
+        while (t < duration)
         {
             t += Time.deltaTime;
-            rt.localScale = Vector3.Lerp(orig, up, t / dur);
+            rt.localScale = Vector3.Lerp(orig, up, t / duration);
             yield return null;
         }
 
         t = 0f;
-        while (t < dur)
+        while (t < duration)
         {
             t += Time.deltaTime;
-            rt.localScale = Vector3.Lerp(up, orig, t / dur);
+            rt.localScale = Vector3.Lerp(up, orig, t / duration);
             yield return null;
         }
 
         rt.localScale = orig;
     }
 
-    void EndMinigame()
-    {
-        phase = Phase.Done;
-        minigameManager?.CloseMinigame();
-    }
-
-    void RestartMinigame()
+    private void RestartGameplayOnly()
     {
         StopAllCoroutines();
-        attempts = 0;
-        successes = 0;
-        breadPaused = false;
-        phase = Phase.Grating;
-
-        if (attemptsUI != null) attemptsUI.ResetAttempts();
-
-        Show(graterHandImage); 
-        SetSprite(graterHandImage, graterHandSprite);
-        graterHandImage.rectTransform.localScale = Vector3.one;
-
-        Show(cheeseHandImage);
-        SetSprite(cheeseHandImage, cheeseHandSprite);
-        cheeseHandImage.rectTransform.anchoredPosition = cheeseHandStartAnchored;
-
-        Hide(cheeseFallingImage);
-
-        SetSprite(movingBreadImage, breadSlideSprite); 
-        Show(movingBreadImage);
-
-        if (cheesePileImage)
-        {
-            Hide(cheesePileImage);
-            cheesePileImage.sprite = null;
-            cheesePileImage.rectTransform.anchoredPosition = Vector2.zero;
-        }
-
-        if (topBreadImage)
-        {
-            Hide(topBreadImage);
-            SetSprite(topBreadImage, breadSlideSprite);
-        }
-
-        uiManager?.UpdateSteps("Sign 'Dance' when the bread is under the grater.");
-        Debug.Log("[Stacking] Restarted.");
+        ForceIdleState();
+        BeginGameplay();
     }
 }

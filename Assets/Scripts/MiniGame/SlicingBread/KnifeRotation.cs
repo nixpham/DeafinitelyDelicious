@@ -1,40 +1,52 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class KnifeRotation : MonoBehaviour
 {
-    public float rotationSpeed = 55f; // Speed of rotation
-    public float minAngle = 70f; // Left rotation limit
-    public float maxAngle = 70f; // Right rotation limit
-    private bool rotatingRight = true;
+    [SerializeField] private float maxAngle = 70f;
+    [SerializeField] private float rotationSpeed = 120f;
 
-    void Update()
+    private float currentAngle;
+    private int direction = 1;
+
+    private void OnEnable()
     {
-        RotateKnife();
+        currentAngle = -maxAngle;
+        ApplyRotation();
+        direction = 1;
     }
 
-    void RotateKnife()
+    private void Update()
     {
-        float rotationStep = rotationSpeed * Time.deltaTime;
-        float currentAngle = transform.eulerAngles.z;
+        currentAngle += direction * rotationSpeed * Time.deltaTime;
 
-        if (rotatingRight)
+        if (currentAngle >= maxAngle)
         {
-            transform.Rotate(0, 0, -rotationStep);
-            if (currentAngle < 360 + minAngle && currentAngle > 180)
-            {
-                rotatingRight = false;
-            }
+            currentAngle = maxAngle;
+            direction = -1;
         }
-        else
+        else if (currentAngle <= -maxAngle)
         {
-            transform.Rotate(0, 0, rotationStep);
-            if (currentAngle > maxAngle && currentAngle < 180)
-            {
-                rotatingRight = true;
-            }
+            currentAngle = -maxAngle;
+            direction = 1;
         }
+
+        ApplyRotation();
+    }
+
+    public bool IsStraight(float tolerance = 10f)
+    {
+        return Mathf.Abs(currentAngle) <= tolerance;
+    }
+
+    public void ResetRotation()
+    {
+        currentAngle = -maxAngle;
+        direction = 1;
+        ApplyRotation();
+    }
+
+    private void ApplyRotation()
+    {
+        transform.localEulerAngles = new Vector3(0f, 0f, currentAngle);
     }
 }
-

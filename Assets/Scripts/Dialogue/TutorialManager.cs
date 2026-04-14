@@ -1,22 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using Common;
 
 public enum TutorialStep
 {
     None = 0,
-
-    // Prologue
     Prologue,
-
-    // Restaurant 1
     RestaurantIntro1,
     RestaurantWaitDoorHighlight,
     RestaurantWaitMomClick,
     RestaurantMomConvo1,
     RestaurantWaitDoorToGrandma,
-
-    // Grandma house
     GrandmaIntro,
     GrandmaWaitCookbookOpen,
     GrandmaWaitGrilledCheeseClick,
@@ -28,12 +24,8 @@ public enum TutorialStep
     GrandmaWaitSignDoneGate,
     GrandmaWaitAfterSignDone,
     GrandmaWaitBackButton,
-
-    // Restaurant 2 / Free roam
     RestaurantIntro2,
     RestaurantFreeRoam,
-
-    // Kitchen
     KitchenTutorial
 }
 
@@ -56,51 +48,24 @@ public class TutorialManager : MonoBehaviour
     public string kitchenTutorialSeenKey = "DEMO_KITCHEN_TUTORIAL_SEEN";
 
     [Header("Grandma Sprite Override")]
-    [Tooltip("Assign ONLY the grandma character GameObject here if refs.grandmaHouseSprite is accidentally pointing to the background.")]
     public GameObject grandmaVisualOverride;
 
     [Header("Grandma House Line Indices")]
-    [Tooltip("After 'Anything! I gave you my cookbook!' finishes, pause and wait for cookbook click.")]
     public int grandmaPauseForCookbookAfterIndex = 14;
-
-    [Tooltip("Resume grandma dialogue at '*Wow, I can’t really understand any of this...*' after first cookbook click.")]
     public int grandmaResumeAfterCookbookIndex = 16;
-
-    [Tooltip("After '*All that I could understand is the first page*' finishes, pause and wait for grilled cheese click.")]
     public int grandmaPauseForGrilledCheeseAfterIndex = 16;
-
-    [Tooltip("Resume grandma dialogue at 'Do you want a grilled cheese sandwich?' after grilled cheese click.")]
     public int grandmaResumeAfterGrilledCheeseIndex = 18;
-
-    [Tooltip("Close cookbook when Grandma says 'I would love that!'")]
     public int grandmaCloseCookbookOnLoveLineIndex = 19;
-
-    [Tooltip("After 'You can learn to sign any necessary words in the cookbook' finishes, pause and wait for cookbook reopen.")]
     public int grandmaPauseForCookbookReopenAfterIndex = 22;
-
-    [Tooltip("Resume grandma dialogue at 'Click on bread' after second cookbook click.")]
     public int grandmaResumeAfterCookbookReopenIndex = 24;
-
-    [Tooltip("After 'Click on bread' finishes, pause and wait for bread click.")]
     public int grandmaPauseForBreadClickAfterIndex = 24;
-
-    [Tooltip("Resume grandma dialogue at 'Let's try to sign bread to Grandma' after study session closes.")]
     public int grandmaResumeAfterStudySessionIndex = 25;
-
-    [Tooltip("After Grandma says 'Let me know what you need', pause for Sign button.")]
     public int grandmaPauseForSignButtonAfterIndex = 25;
-
-    [Tooltip("Resume grandma dialogue at 'Usually, you would sign to Grandma...' after sign button is pressed.")]
     public int grandmaResumeAfterSignButtonIndex = 27;
 
     [Header("NEW: Sign Done / Back Gating")]
-    [Tooltip("About 3 lines after the sign section starts, pause and require the Done button before progressing.")]
     public int grandmaPauseForSignDoneAfterIndex = 28;
-
-    [Tooltip("Resume dialogue at the line immediately after the Done-button gate.")]
     public int grandmaResumeAfterSignDoneIndex = 29;
-
-    [Tooltip("After about 2 more lines, pause and require the Back button to finish Grandma's house and return to restaurant.")]
     public int grandmaPauseForBackButtonAfterIndex = 30;
 
     private TutorialSceneRefs refs;
@@ -110,9 +75,11 @@ public class TutorialManager : MonoBehaviour
 
     private bool hasClickedGrilledCheese = false;
     private bool canClickGrilledCheese = false;
-
     private bool wasStudySessionOpen = false;
     private bool hasHandledStudySessionClose = false;
+
+    // *** ADDED: track recognizer initialization
+    private bool recognizerInitialized = false;
 
     private void Awake()
     {
@@ -121,7 +88,6 @@ public class TutorialManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
         LoadOrInitializeStep();
     }
@@ -129,10 +95,33 @@ public class TutorialManager : MonoBehaviour
     public void RegisterScene(TutorialSceneRefs sceneRefs)
     {
         refs = sceneRefs;
+        recognizerInitialized = false; // *** ADDED: reset on scene register so it re-inits
 
         HookNPCEvents();
         HookButtons();
         ApplyStepForCurrentScene();
+    }
+
+    // *** ADDED: Initialize the sign recognizer with frog filter
+    private void InitializeRecognizer()
+    {
+        if (recognizerInitialized) return;
+        if (refs == null || refs.signEngine == null || refs.signEngine.recognizer == null) return;
+
+        refs.signEngine.recognizer.AddCallback("tutorial", HandleSign);
+        refs.signEngine.recognizer.outputFilters.Clear();
+        refs.signEngine.recognizer.outputFilters.Add(
+            new FocusSublistFilter<string>(new List<string> { "frog" })
+        );
+
+        recognizerInitialized = true;
+        Debug.Log("Tutorial recognizer initialized with frog filter.");
+    }
+
+    // *** ADDED: Handle recognized sign
+    private void HandleSign(string sign)
+    {
+        Debug.Log($"Tutorial sign recognized: '{sign}'");
     }
 
     private void HookNPCEvents()
@@ -143,7 +132,6 @@ public class TutorialManager : MonoBehaviour
         {
             refs.restaurantNPC.OnDialogueIndexChanged -= OnRestaurantDialogueIndexChanged;
             refs.restaurantNPC.OnDialogueIndexChanged += OnRestaurantDialogueIndexChanged;
-
             refs.restaurantNPC.OnSequenceEnded -= OnSequenceEnded;
             refs.restaurantNPC.OnSequenceEnded += OnSequenceEnded;
         }
@@ -152,7 +140,6 @@ public class TutorialManager : MonoBehaviour
         {
             refs.conversationNPC.OnDialogueIndexChanged -= OnConversationDialogueIndexChanged;
             refs.conversationNPC.OnDialogueIndexChanged += OnConversationDialogueIndexChanged;
-
             refs.conversationNPC.OnSequenceEnded -= OnSequenceEnded;
             refs.conversationNPC.OnSequenceEnded += OnSequenceEnded;
         }
@@ -166,7 +153,6 @@ public class TutorialManager : MonoBehaviour
         Rehook(refs.momButton, OnMomPressed);
         Rehook(refs.restaurantGrandmaButton, OnRestaurantGrandmaPressed);
         Rehook(refs.backButton, OnBackPressed);
-
         Rehook(refs.cookbookButton, OnCookbookPressed);
         Rehook(refs.grilledCheeseButton, OnGrilledCheesePressed);
         Rehook(refs.breadButton, OnBreadPressed);
@@ -185,9 +171,7 @@ public class TutorialManager : MonoBehaviour
     private void LoadOrInitializeStep()
     {
         if (PlayerPrefs.HasKey(tutorialStepKey))
-        {
             Step = (TutorialStep)PlayerPrefs.GetInt(tutorialStepKey);
-        }
         else
         {
             Step = TutorialStep.Prologue;
@@ -205,23 +189,9 @@ public class TutorialManager : MonoBehaviour
     private bool HasSeenRestaurantIntro2() => PlayerPrefs.GetInt(restaurantIntro2SeenKey, 0) == 1;
     private bool HasSeenKitchenTutorial() => PlayerPrefs.GetInt(kitchenTutorialSeenKey, 0) == 1;
 
-    private void MarkRestaurantIntro1Seen()
-    {
-        PlayerPrefs.SetInt(restaurantIntro1SeenKey, 1);
-        PlayerPrefs.Save();
-    }
-
-    private void MarkRestaurantIntro2Seen()
-    {
-        PlayerPrefs.SetInt(restaurantIntro2SeenKey, 1);
-        PlayerPrefs.Save();
-    }
-
-    private void MarkKitchenTutorialSeen()
-    {
-        PlayerPrefs.SetInt(kitchenTutorialSeenKey, 1);
-        PlayerPrefs.Save();
-    }
+    private void MarkRestaurantIntro1Seen() { PlayerPrefs.SetInt(restaurantIntro1SeenKey, 1); PlayerPrefs.Save(); }
+    private void MarkRestaurantIntro2Seen() { PlayerPrefs.SetInt(restaurantIntro2SeenKey, 1); PlayerPrefs.Save(); }
+    private void MarkKitchenTutorialSeen() { PlayerPrefs.SetInt(kitchenTutorialSeenKey, 1); PlayerPrefs.Save(); }
 
     private NPC GetActiveSceneNPC()
     {
@@ -242,12 +212,7 @@ public class TutorialManager : MonoBehaviour
         switch (Step)
         {
             case TutorialStep.Prologue:
-                if (currentScene != prologueSceneName)
-                {
-                    SceneManager.LoadScene(prologueSceneName);
-                    return;
-                }
-
+                if (currentScene != prologueSceneName) { SceneManager.LoadScene(prologueSceneName); return; }
                 refs.restaurantNPC?.PlaySequence(DialogueSequence.Prologue);
                 break;
 
@@ -258,19 +223,12 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.RestaurantWaitDoorToGrandma:
             case TutorialStep.RestaurantIntro2:
             case TutorialStep.RestaurantFreeRoam:
-                // Allow FreeRoam to exist in either Restaurant or Kitchen
                 if (Step == TutorialStep.RestaurantFreeRoam && currentScene == kitchenSceneName)
                 {
                     ApplyKitchenFreeRoamStep();
                     return;
                 }
-
-                if (currentScene != restaurantSceneName)
-                {
-                    SceneManager.LoadScene(restaurantSceneName);
-                    return;
-                }
-
+                if (currentScene != restaurantSceneName) { SceneManager.LoadScene(restaurantSceneName); return; }
                 ApplyRestaurantStep();
                 break;
 
@@ -285,20 +243,12 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.GrandmaWaitSignDoneGate:
             case TutorialStep.GrandmaWaitAfterSignDone:
             case TutorialStep.GrandmaWaitBackButton:
-                if (currentScene != grandmaSceneName)
-                {
-                    SceneManager.LoadScene(grandmaSceneName);
-                    return;
-                }
+                if (currentScene != grandmaSceneName) { SceneManager.LoadScene(grandmaSceneName); return; }
                 ApplyGrandmaStep();
                 break;
 
             case TutorialStep.KitchenTutorial:
-                if (currentScene != kitchenSceneName)
-                {
-                    SceneManager.LoadScene(kitchenSceneName);
-                    return;
-                }
+                if (currentScene != kitchenSceneName) { SceneManager.LoadScene(kitchenSceneName); return; }
                 ApplyKitchenStep();
                 break;
         }
@@ -327,7 +277,6 @@ public class TutorialManager : MonoBehaviour
                     ApplyRestaurantStep();
                     return;
                 }
-
                 if (refs.momSprite != null) refs.momSprite.SetActive(false);
                 if (refs.restaurantGrandmaSprite != null) refs.restaurantGrandmaSprite.SetActive(false);
                 refs.restaurantNPC?.PlaySequence(DialogueSequence.RestaurantIntro1);
@@ -336,10 +285,7 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.RestaurantWaitDoorHighlight:
                 SetActive(refs.doorHighlight, true);
                 SetInteractable(refs.doorButton, true);
-
-                if (refs.momSprite != null)
-                    refs.momSprite.SetActive(false);
-
+                if (refs.momSprite != null) refs.momSprite.SetActive(false);
                 refs.restaurantNPC?.SetExternalPause(true);
                 break;
 
@@ -357,9 +303,7 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.RestaurantWaitDoorToGrandma:
                 ShowRestaurantView();
-
                 if (refs.momSprite != null) refs.momSprite.SetActive(true);
-
                 SetActive(refs.doorHighlight, true);
                 SetInteractable(refs.doorButton, true);
                 SetInteractable(refs.momButton, true);
@@ -368,18 +312,15 @@ public class TutorialManager : MonoBehaviour
             case TutorialStep.RestaurantIntro2:
                 if (refs.momSprite != null) refs.momSprite.SetActive(true);
                 if (refs.restaurantGrandmaSprite != null) refs.restaurantGrandmaSprite.SetActive(true);
-
                 SetInteractable(refs.momButton, true);
                 SetInteractable(refs.restaurantGrandmaButton, true);
                 SetInteractable(refs.kitchenButton, true);
-
                 refs.restaurantNPC?.PlaySequence(DialogueSequence.RestaurantIntro2);
                 break;
 
             case TutorialStep.RestaurantFreeRoam:
                 if (refs.momSprite != null) refs.momSprite.SetActive(true);
                 if (refs.restaurantGrandmaSprite != null) refs.restaurantGrandmaSprite.SetActive(true);
-
                 SetInteractable(refs.momButton, true);
                 SetInteractable(refs.restaurantGrandmaButton, true);
                 SetInteractable(refs.kitchenButton, true);
@@ -391,8 +332,10 @@ public class TutorialManager : MonoBehaviour
     {
         ShowConversationView();
 
-        if (refs.backButton != null)
-            refs.backButton.interactable = false;
+        // *** ADDED: initialize recognizer whenever we're in the grandma scene
+        InitializeRecognizer();
+
+        if (refs.backButton != null) refs.backButton.interactable = false;
 
         switch (Step)
         {
@@ -403,128 +346,101 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.GrandmaWaitCookbookOpen:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.cookbookHighlight, true);
                 if (refs.cookbookButton != null) refs.cookbookButton.gameObject.SetActive(true);
                 SetInteractable(refs.cookbookButton, true);
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitGrilledCheeseClick:
                 SetGrandmaVisible(false);
-
                 if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
                 if (refs.grilledCheeseButton != null) refs.grilledCheeseButton.gameObject.SetActive(true);
-
                 SetActive(refs.cookbookHighlight, false);
                 SetActive(refs.grilledCheeseHighlight, canClickGrilledCheese && !hasClickedGrilledCheese);
-
                 SetInteractable(refs.cookbookButton, false);
                 SetInteractable(refs.grilledCheeseButton, canClickGrilledCheese && !hasClickedGrilledCheese);
                 break;
 
             case TutorialStep.GrandmaWaitCookbookReopen:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.cookbookHighlight, true);
                 if (refs.cookbookButton != null) refs.cookbookButton.gameObject.SetActive(true);
                 SetInteractable(refs.cookbookButton, true);
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitBreadClick:
                 SetGrandmaVisible(false);
-
                 if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
                 if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
                 if (refs.breadButton != null) refs.breadButton.gameObject.SetActive(true);
-
                 SetActive(refs.cookbookHighlight, false);
                 SetInteractable(refs.cookbookButton, false);
                 SetInteractable(refs.breadButton, true);
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitStudyClose:
                 SetGrandmaVisible(false);
-
                 if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
                 if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitSignBreadButton:
                 SetGrandmaVisible(true);
-
                 if (refs.signButton != null) refs.signButton.gameObject.SetActive(true);
                 SetInteractable(refs.signButton, true);
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitBreadSign:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.signEngineRoot, true);
-
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
                     refs.signDoneButton.interactable = false;
                 }
-
                 refs.conversationNPC?.SetExternalPause(false);
                 break;
 
             case TutorialStep.GrandmaWaitSignDoneGate:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.signEngineRoot, true);
-
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(true);
                     refs.signDoneButton.interactable = true;
                 }
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
 
             case TutorialStep.GrandmaWaitAfterSignDone:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.signEngineRoot, false);
-
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
                     refs.signDoneButton.interactable = false;
                 }
-
                 refs.conversationNPC?.SetExternalPause(false);
                 break;
 
             case TutorialStep.GrandmaWaitBackButton:
                 SetGrandmaVisible(true);
-
                 SetActive(refs.signEngineRoot, false);
-
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
                     refs.signDoneButton.interactable = false;
                 }
-
                 if (refs.backButton != null)
                 {
                     refs.backButton.gameObject.SetActive(true);
                     refs.backButton.interactable = true;
                 }
-
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
         }
@@ -533,14 +449,12 @@ public class TutorialManager : MonoBehaviour
     private void ApplyKitchenStep()
     {
         NPC kitchenNPC = GetActiveSceneNPC();
-
         if (HasSeenKitchenTutorial())
         {
             Step = TutorialStep.RestaurantFreeRoam;
             SaveStep();
             return;
         }
-
         kitchenNPC?.PlaySequence(DialogueSequence.KitchenTutorial);
     }
 
@@ -554,24 +468,19 @@ public class TutorialManager : MonoBehaviour
     private void SetGrandmaVisible(bool visible)
     {
         GameObject grandmaVisual = GetGrandmaVisual();
-        if (grandmaVisual != null)
-            grandmaVisual.SetActive(visible);
+        if (grandmaVisual != null) grandmaVisual.SetActive(visible);
     }
 
     private void OpenCookbookForFirstTime()
     {
         SetGrandmaVisible(false);
-
         if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
         if (refs.grilledCheeseButton != null) refs.grilledCheeseButton.gameObject.SetActive(true);
         if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(false);
-
         SetActive(refs.cookbookHighlight, false);
         SetActive(refs.grilledCheeseHighlight, false);
-
         SetInteractable(refs.cookbookButton, false);
         SetInteractable(refs.grilledCheeseButton, false);
-
         hasClickedGrilledCheese = false;
         canClickGrilledCheese = false;
     }
@@ -579,15 +488,12 @@ public class TutorialManager : MonoBehaviour
     private void OpenCookbookForBreadStep()
     {
         SetGrandmaVisible(false);
-
         if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
         if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
         if (refs.breadButton != null) refs.breadButton.gameObject.SetActive(true);
-
         SetActive(refs.cookbookHighlight, false);
         SetActive(refs.grilledCheeseHighlight, false);
         SetActive(refs.breadHighlight, false);
-
         SetInteractable(refs.cookbookButton, false);
         SetInteractable(refs.grilledCheeseButton, false);
         SetInteractable(refs.breadButton, true);
@@ -597,11 +503,9 @@ public class TutorialManager : MonoBehaviour
     {
         if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(false);
         if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(false);
-
         SetActive(refs.cookbookHighlight, false);
         SetActive(refs.grilledCheeseHighlight, false);
         SetActive(refs.breadHighlight, false);
-
         SetGrandmaVisible(true);
     }
 
@@ -650,13 +554,9 @@ public class TutorialManager : MonoBehaviour
     private void ShowRestaurantViewIfRestaurantScene()
     {
         if (refs == null) return;
-
         string sceneName = SceneManager.GetActiveScene().name;
-
-        if (sceneName == restaurantSceneName)
-            ShowRestaurantView();
-        else if (sceneName == grandmaSceneName || sceneName == kitchenSceneName)
-            ShowConversationView();
+        if (sceneName == restaurantSceneName) ShowRestaurantView();
+        else if (sceneName == grandmaSceneName || sceneName == kitchenSceneName) ShowConversationView();
     }
 
     private void ShowRestaurantView()
@@ -671,32 +571,14 @@ public class TutorialManager : MonoBehaviour
         if (refs.conversationViewRoot != null) refs.conversationViewRoot.SetActive(true);
     }
 
-    private void SetActive(GameObject go, bool active)
-    {
-        if (go != null) go.SetActive(active);
-    }
-
-    private void SetInteractable(Button button, bool interactable)
-    {
-        if (button != null) button.interactable = interactable;
-    }
-
-    private void ApplyKitchenFreeRoamStep()
-    {
-        ShowConversationView();
-    }
+    private void SetActive(GameObject go, bool active) { if (go != null) go.SetActive(active); }
+    private void SetInteractable(Button button, bool interactable) { if (button != null) button.interactable = interactable; }
+    private void ApplyKitchenFreeRoamStep() { ShowConversationView(); }
 
     private bool IsStudySessionCurrentlyOpen()
     {
-        bool popupOpen = false;
-        bool rootOpen = false;
-
-        if (refs != null && refs.studySessionPopup != null)
-            popupOpen = refs.studySessionPopup.gameObject.activeInHierarchy;
-
-        if (refs != null && refs.studySessionRoot != null)
-            rootOpen = refs.studySessionRoot.activeInHierarchy;
-
+        bool popupOpen = refs?.studySessionPopup != null && refs.studySessionPopup.gameObject.activeInHierarchy;
+        bool rootOpen = refs?.studySessionRoot != null && refs.studySessionRoot.activeInHierarchy;
         return popupOpen || rootOpen;
     }
 
@@ -706,12 +588,7 @@ public class TutorialManager : MonoBehaviour
         if (Step != TutorialStep.GrandmaWaitStudyClose) return;
 
         bool isOpen = IsStudySessionCurrentlyOpen();
-
-        if (isOpen)
-        {
-            wasStudySessionOpen = true;
-            return;
-        }
+        if (isOpen) { wasStudySessionOpen = true; return; }
 
         if (wasStudySessionOpen && !isOpen && !hasHandledStudySessionClose)
         {
@@ -728,13 +605,8 @@ public class TutorialManager : MonoBehaviour
         {
             SetActive(refs.doorHighlight, false);
             SetInteractable(refs.doorButton, false);
-
-            if (refs.momSprite != null)
-                refs.momSprite.SetActive(true);
-
-            if (refs.momButton != null)
-                refs.momButton.interactable = false;
-
+            if (refs.momSprite != null) refs.momSprite.SetActive(true);
+            if (refs.momButton != null) refs.momButton.interactable = false;
             refs.restaurantNPC?.SetExternalPause(false);
             refs.restaurantNPC?.ResumeAfterClick(2);
             return;
@@ -744,7 +616,6 @@ public class TutorialManager : MonoBehaviour
         {
             SetActive(refs.doorHighlight, false);
             SetInteractable(refs.doorButton, false);
-
             Step = TutorialStep.GrandmaIntro;
             SaveStep();
             SceneManager.LoadScene(grandmaSceneName);
@@ -781,7 +652,6 @@ public class TutorialManager : MonoBehaviour
     private void OnRestaurantGrandmaPressed()
     {
         if (refs == null) return;
-
         if (Step == TutorialStep.RestaurantFreeRoam)
         {
             ShowConversationView();
@@ -796,10 +666,8 @@ public class TutorialManager : MonoBehaviour
         if (Step == TutorialStep.GrandmaWaitCookbookOpen)
         {
             OpenCookbookForFirstTime();
-
             refs.conversationNPC?.SetExternalPause(false);
             refs.conversationNPC?.ResumeAfterClick(grandmaResumeAfterCookbookIndex);
-
             Step = TutorialStep.GrandmaWaitGrilledCheeseClick;
             SaveStep();
             return;
@@ -808,15 +676,12 @@ public class TutorialManager : MonoBehaviour
         if (Step == TutorialStep.GrandmaWaitCookbookReopen)
         {
             OpenCookbookForBreadStep();
-
             Step = TutorialStep.GrandmaWaitBreadClick;
             SaveStep();
-
             refs.conversationNPC?.ResumeAfterClick(grandmaResumeAfterCookbookReopenIndex);
             refs.conversationNPC?.SetExternalPause(true);
             SetActive(refs.breadHighlight, true);
             SetInteractable(refs.breadButton, true);
-
             return;
         }
     }
@@ -833,11 +698,8 @@ public class TutorialManager : MonoBehaviour
         SetActive(refs.grilledCheeseHighlight, false);
         SetInteractable(refs.grilledCheeseButton, false);
 
-        if (refs.cookbookPanel != null)
-            refs.cookbookPanel.SetActive(true);
-
-        if (refs.grilledCheesePage1 != null)
-            refs.grilledCheesePage1.SetActive(true);
+        if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
+        if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
 
         SetGrandmaVisible(false);
 
@@ -858,22 +720,15 @@ public class TutorialManager : MonoBehaviour
         wasStudySessionOpen = false;
         hasHandledStudySessionClose = false;
 
-        if (refs.cookbookPanel != null)
-            refs.cookbookPanel.SetActive(true);
-
-        if (refs.grilledCheesePage1 != null)
-            refs.grilledCheesePage1.SetActive(true);
+        if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
+        if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
 
         SetGrandmaVisible(false);
 
         if (refs.studySessionPopup != null)
-        {
             refs.studySessionPopup.OpenSession(new string[] { "Bread", "Butter", "Cheese" });
-        }
         else if (refs.studySessionRoot != null)
-        {
             refs.studySessionRoot.SetActive(true);
-        }
 
         wasStudySessionOpen = IsStudySessionCurrentlyOpen();
     }
@@ -883,8 +738,7 @@ public class TutorialManager : MonoBehaviour
         if (refs == null) return;
         if (Step != TutorialStep.GrandmaWaitSignBreadButton) return;
 
-        if (refs.signButton != null)
-            refs.signButton.gameObject.SetActive(false);
+        if (refs.signButton != null) refs.signButton.gameObject.SetActive(false);
 
         Step = TutorialStep.GrandmaWaitBreadSign;
         SaveStep();
@@ -898,6 +752,13 @@ public class TutorialManager : MonoBehaviour
     {
         if (refs == null) return;
         if (Step != TutorialStep.GrandmaWaitSignDoneGate) return;
+
+        // *** ADDED: trigger the recognizer when the user is done signing
+        if (refs.signEngine != null && refs.signEngine.buffer != null)
+        {
+            refs.signEngine.buffer.TriggerCallbacks();
+            Debug.Log("Sign done pressed - buffer triggered.");
+        }
 
         SetActive(refs.signEngineRoot, false);
 
@@ -917,7 +778,6 @@ public class TutorialManager : MonoBehaviour
     private void OnBackPressed()
     {
         if (Step != TutorialStep.GrandmaWaitBackButton) return;
-
         Step = HasSeenRestaurantIntro2() ? TutorialStep.RestaurantFreeRoam : TutorialStep.RestaurantIntro2;
         SaveStep();
         SceneManager.LoadScene(restaurantSceneName);
@@ -927,11 +787,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (Step != TutorialStep.RestaurantFreeRoam) return;
 
-        if (HasSeenKitchenTutorial())
-        {
-            SceneManager.LoadScene(kitchenSceneName);
-            return;
-        }
+        if (HasSeenKitchenTutorial()) { SceneManager.LoadScene(kitchenSceneName); return; }
 
         Step = TutorialStep.KitchenTutorial;
         SaveStep();
@@ -952,8 +808,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (refs == null) return;
 
-        if (Step == TutorialStep.GrandmaIntro &&
-            index == grandmaPauseForCookbookAfterIndex + 1)
+        if (Step == TutorialStep.GrandmaIntro && index == grandmaPauseForCookbookAfterIndex + 1)
         {
             Step = TutorialStep.GrandmaWaitCookbookOpen;
             SaveStep();
@@ -961,38 +816,30 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick &&
-            !hasClickedGrilledCheese &&
+        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick && !hasClickedGrilledCheese &&
             index == grandmaPauseForGrilledCheeseAfterIndex + 1)
         {
             refs.conversationNPC?.SetExternalPause(true);
-
             canClickGrilledCheese = true;
             SetGrandmaVisible(false);
-
             if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
             if (refs.grilledCheeseButton != null) refs.grilledCheeseButton.gameObject.SetActive(true);
             if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(false);
-
             SetActive(refs.grilledCheeseHighlight, true);
             SetInteractable(refs.grilledCheeseButton, true);
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick &&
-            hasClickedGrilledCheese &&
+        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick && hasClickedGrilledCheese &&
             index == grandmaResumeAfterGrilledCheeseIndex)
         {
             SetGrandmaVisible(false);
-
             if (refs.cookbookPanel != null) refs.cookbookPanel.SetActive(true);
             if (refs.grilledCheesePage1 != null) refs.grilledCheesePage1.SetActive(true);
-
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick &&
-            hasClickedGrilledCheese &&
+        if (Step == TutorialStep.GrandmaWaitGrilledCheeseClick && hasClickedGrilledCheese &&
             index == grandmaCloseCookbookOnLoveLineIndex)
         {
             CloseCookbookView();
@@ -1008,37 +855,33 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitBreadClick &&
-            index == grandmaPauseForBreadClickAfterIndex)
+        if (Step == TutorialStep.GrandmaWaitBreadClick && index == grandmaPauseForBreadClickAfterIndex)
         {
             SetActive(refs.breadHighlight, true);
             refs.conversationNPC?.SetExternalPause(true);
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitStudyClose &&
-            index == grandmaResumeAfterStudySessionIndex)
+        if (Step == TutorialStep.GrandmaWaitStudyClose && index == grandmaResumeAfterStudySessionIndex)
         {
             CloseCookbookView();
             return;
         }
 
         if ((Step == TutorialStep.GrandmaIntro ||
-            Step == TutorialStep.GrandmaWaitStudyClose ||
-            Step == TutorialStep.GrandmaWaitGrilledCheeseClick ||
-            Step == TutorialStep.GrandmaWaitBreadClick) &&
+             Step == TutorialStep.GrandmaWaitStudyClose ||
+             Step == TutorialStep.GrandmaWaitGrilledCheeseClick ||
+             Step == TutorialStep.GrandmaWaitBreadClick) &&
             index == grandmaPauseForSignButtonAfterIndex + 1)
         {
             CloseCookbookView();
-
             Step = TutorialStep.GrandmaWaitSignBreadButton;
             SaveStep();
             ApplyStepForCurrentScene();
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitBreadSign &&
-            index == grandmaPauseForSignDoneAfterIndex + 1)
+        if (Step == TutorialStep.GrandmaWaitBreadSign && index == grandmaPauseForSignDoneAfterIndex + 1)
         {
             Step = TutorialStep.GrandmaWaitSignDoneGate;
             SaveStep();
@@ -1046,8 +889,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (Step == TutorialStep.GrandmaWaitAfterSignDone &&
-            index == grandmaPauseForBackButtonAfterIndex + 1)
+        if (Step == TutorialStep.GrandmaWaitAfterSignDone && index == grandmaPauseForBackButtonAfterIndex + 1)
         {
             Step = TutorialStep.GrandmaWaitBackButton;
             SaveStep();
@@ -1066,19 +908,16 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (sequence == DialogueSequence.RestaurantIntro1 &&
-            Step == TutorialStep.RestaurantWaitDoorHighlight)
+        if (sequence == DialogueSequence.RestaurantIntro1 && Step == TutorialStep.RestaurantWaitDoorHighlight)
         {
             MarkRestaurantIntro1Seen();
-
             Step = TutorialStep.RestaurantWaitMomClick;
             SaveStep();
             ApplyStepForCurrentScene();
             return;
         }
 
-        if (sequence == DialogueSequence.RestaurantMomConvo1 &&
-            Step == TutorialStep.RestaurantMomConvo1)
+        if (sequence == DialogueSequence.RestaurantMomConvo1 && Step == TutorialStep.RestaurantMomConvo1)
         {
             ShowRestaurantView();
             Step = TutorialStep.RestaurantWaitDoorToGrandma;
@@ -1087,24 +926,17 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (sequence == DialogueSequence.RestaurantMomReminder1)
-        {
-            ShowRestaurantView();
-            return;
-        }
+        if (sequence == DialogueSequence.RestaurantMomReminder1) { ShowRestaurantView(); return; }
 
-        if (sequence == DialogueSequence.GrandmasHouse1 &&
-            Step == TutorialStep.GrandmaWaitBackButton)
+        if (sequence == DialogueSequence.GrandmasHouse1 && Step == TutorialStep.GrandmaWaitBackButton)
         {
             ApplyStepForCurrentScene();
             return;
         }
 
-        if (sequence == DialogueSequence.RestaurantIntro2 &&
-            Step == TutorialStep.RestaurantIntro2)
+        if (sequence == DialogueSequence.RestaurantIntro2 && Step == TutorialStep.RestaurantIntro2)
         {
             MarkRestaurantIntro2Seen();
-
             Step = TutorialStep.RestaurantFreeRoam;
             SaveStep();
             ApplyStepForCurrentScene();
@@ -1118,8 +950,7 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        if (sequence == DialogueSequence.KitchenTutorial &&
-            Step == TutorialStep.KitchenTutorial)
+        if (sequence == DialogueSequence.KitchenTutorial && Step == TutorialStep.KitchenTutorial)
         {
             MarkKitchenTutorialSeen();
             Step = TutorialStep.RestaurantFreeRoam;
@@ -1130,11 +961,8 @@ public class TutorialManager : MonoBehaviour
 
     public void NotifyStudySessionClosed()
     {
-        if (refs != null && refs.studySessionRoot != null)
-            refs.studySessionRoot.SetActive(false);
-
-        if (refs != null && refs.studySessionPopup != null)
-            refs.studySessionPopup.gameObject.SetActive(false);
+        if (refs?.studySessionRoot != null) refs.studySessionRoot.SetActive(false);
+        if (refs?.studySessionPopup != null) refs.studySessionPopup.gameObject.SetActive(false);
 
         if (Step == TutorialStep.GrandmaWaitStudyClose)
         {

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-
+using Engine;
 public class TutorialSceneRefs : MonoBehaviour
 {
     public enum SceneKind
@@ -10,6 +10,9 @@ public class TutorialSceneRefs : MonoBehaviour
         GrandmasHouse,
         Kitchen
     }
+
+    [Header("Sign Engine")]
+    public SimpleExecutionEngine signEngine;
 
     [Header("Which scene is this?")]
     public SceneKind sceneKind;
