@@ -196,12 +196,14 @@ public class StackingMinigame : MonoBehaviour
         if (ok)
         {
             successes = Mathf.Min(successes + 1, 2);
+            AudioManager.Instance.PlaySfx(GameAudioPaths.StackingCheeseGrating, 0.85f);
             Debug.Log($"[Stacking] SUCCESS grate ({successes}/2).");
             UpdateCheesePile();
             yield return StartCoroutine(CheeseFallingFX());
         }
         else
         {
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
             Debug.Log("[Stacking] FAIL grate.");
             yield return StartCoroutine(MissJitter(graterHandImage.rectTransform));
         }
@@ -229,6 +231,7 @@ public class StackingMinigame : MonoBehaviour
     void EnterDropPhase()
     {
         phase = Phase.DropPrompt;
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiOkAction, 0.85f);
 
         Hide(cheeseFallingImage);
         Hide(cheeseHandImage);
@@ -254,11 +257,13 @@ public class StackingMinigame : MonoBehaviour
         if (ok)
         {
             Debug.Log("[Stacking] DROP aligned.");
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiGoodAction, 0.9f);
             StartCoroutine(DropSuccessFlow());
         }
         else
         {
             Debug.Log("[Stacking] DROP FAILED → Restart.");
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
             RestartMinigame();
         }
     }

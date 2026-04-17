@@ -51,6 +51,7 @@ public class HighLightObject : MonoBehaviour
 
     public void OnDoorClicked()
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiOpenDoor, 0.85f);
         npcScript.runNextLine = true;
         door.SetActive(false);
         npcScript.ResumeAfterClick(2);

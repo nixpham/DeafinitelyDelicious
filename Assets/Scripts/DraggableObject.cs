@@ -36,6 +36,7 @@ public class DraggableObject : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             if (recipeManager != null)
             {
                 Debug.Log($"Placed {gameObject.name} on the countertop.");
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiInventoryEquip, 0.85f);
                 recipeManager.ObjectPlaced(gameObject);  // Notify RecipeManager
             }
             else

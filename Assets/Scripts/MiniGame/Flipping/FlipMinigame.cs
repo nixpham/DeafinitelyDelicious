@@ -244,6 +244,7 @@ public class FlipMinigame : MonoBehaviour
         // start cooking
         introDone = true;
         isCooking = true;
+        AudioManager.Instance.PlaySfx(GameAudioPaths.FlippingCooking, 0.6f);
         uiManager?.UpdateSteps("Sandwich is cooking! Flip with 'DANCE'. When BOTH sides have been cooked while the slider is GREEN, sign 'CUT'.");
         Debug.Log("[Flipping] Intro finished. Cooking started on bottom side.");
     }
@@ -306,6 +307,7 @@ public class FlipMinigame : MonoBehaviour
 
         // ---- INSTANT SPIN AT PEAK ----
         // visually fast spin → 180° flip
+        AudioManager.Instance.PlaySfx(GameAudioPaths.FlippingFlip, 0.85f);
         sandwichGroup.localEulerAngles = new Vector3(0f, 0f, 180f);
 
         // swap side logic
@@ -365,6 +367,7 @@ public class FlipMinigame : MonoBehaviour
         if (bothGood)
         {
             uiManager?.UpdateSteps("Nice! Both sides were green and perfectly toasted.");
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiGoodAction, 0.9f);
             if (attemptsUI != null)
                 attemptsUI.RegisterAttempt(true);
 
@@ -380,6 +383,7 @@ public class FlipMinigame : MonoBehaviour
                 msg = "You signed before both sides were green. At least one side is undercooked. Try again from the butter.";
 
             uiManager?.UpdateSteps(msg);
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
 
             if (attemptsUI != null)
                 attemptsUI.RegisterAttempt(false);

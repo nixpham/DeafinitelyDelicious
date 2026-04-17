@@ -299,6 +299,14 @@ public class NPC : MonoBehaviour
         dialogueRoot.SetActive(false);
 
         if (SceneManager.GetActiveScene().name == "PrologueScene")
-            SceneManager.LoadScene("RestaurantScene");
+        {
+            if (ScenesManager.Instance != null)
+                ScenesManager.Instance.LoadScene(ScenesManager.Scene.RestaurantScene);
+            else
+            {
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+                SceneManager.LoadScene("RestaurantScene");
+            }
+        }
     }
 }

@@ -101,6 +101,7 @@ public class SlicingMinigame : MonoBehaviour
     public void PickUpKnife()
     {
         Debug.Log("Knife picked up!");
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiInventoryEquip, 0.8f);
         tableKnife.SetActive(false);
         rotatingKnife.SetActive(true);
     }
@@ -116,10 +117,12 @@ public class SlicingMinigame : MonoBehaviour
         if (success)
         {
             successfulCuts++;
+            AudioManager.Instance.PlaySfx(GameAudioPaths.SlicingBreadCut, 0.85f);
             Debug.Log("Successful Cut! (" + successfulCuts + "/2)");
         }
         else
         {
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
             Debug.Log("Failed Cut! Knife is too angled.");
         }
 
@@ -132,6 +135,7 @@ public class SlicingMinigame : MonoBehaviour
 
         if (successfulCuts >= 2)
         {
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiGoodAction, 0.9f);
             Debug.Log("Minigame Success! Closing panel...");
             EndMinigame();
         }

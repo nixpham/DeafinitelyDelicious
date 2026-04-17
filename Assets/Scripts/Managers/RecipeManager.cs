@@ -160,6 +160,7 @@ public class RecipeManager : MonoBehaviour
         else
         {
             if (plate) plate.SetActive(true);
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiSparkle, 0.9f);
             uiManager?.UpdateInstructions("Now grab the plate to serve it!");
         }
     }

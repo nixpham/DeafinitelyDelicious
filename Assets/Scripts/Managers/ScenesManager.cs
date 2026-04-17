@@ -26,16 +26,19 @@ public class ScenesManager : MonoBehaviour
 
     public void LoadScene(Scene scene)
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
         SceneManager.LoadScene(scene.ToString());
     }
 
     public void LoadStartGame()
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
         SceneManager.LoadScene(Scene.PrologueScene.ToString());
     }
 
     public void LoadNextScene()
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }

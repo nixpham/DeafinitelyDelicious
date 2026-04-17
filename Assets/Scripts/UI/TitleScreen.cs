@@ -10,12 +10,16 @@ public class TitleScreen : MonoBehaviour
 
     void Start()
     {
-        _startGame.onClick.AddListener(StartGame);
+        if (_startGame != null && _startGame.onClick.GetPersistentEventCount() == 0)
+        {
+            _startGame.onClick.AddListener(StartGame);
+        }
     }
 
-    private void StartGame()
+    public void StartGame()
     {
-        ScenesManager.Instance.LoadStartGame();
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+        SceneManager.LoadScene(ScenesManager.Scene.PrologueScene.ToString());
     }
 
     public void QuitGame()
