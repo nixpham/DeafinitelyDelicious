@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 6663722670088749627}
   - component: {fileID: 7112087299238316628}
   - component: {fileID: 1494417219596271229}
+  - component: {fileID: 3209916716417970558}
   m_Layer: 5
   m_Name: StudySession
   m_TagString: Untagged
@@ -691,6 +692,21 @@ MonoBehaviour:
   replayButton: {fileID: 7368737488469033008}
   nextButton: {fileID: 5693202356753735451}
   availableSigns: []
+--- !u!114 &3209916716417970558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1901606748702518518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28584b71c4b68124884d0d903ed0bade, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VideoSpeedController
+  videoPlayer: {fileID: 278754747452036004}
+  speedSlider: {fileID: 525183177905502089}
+  speedLabel: {fileID: 0}
 --- !u!1 &1944164794346383875
 GameObject:
   m_ObjectHideFlags: 0
