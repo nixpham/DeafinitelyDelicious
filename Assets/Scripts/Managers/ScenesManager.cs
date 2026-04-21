@@ -30,11 +30,17 @@ public class ScenesManager : MonoBehaviour
 
     public void LoadScene(Scene scene)
     {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+
         SceneManager.LoadScene(scene.ToString());
     }
 
     public void LoadStartGame()
     {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+
         if (PlayerPrefs.GetInt(TUTORIAL_COMPLETED_KEY, 0) == 1)
             SceneManager.LoadScene(Scene.RestaurantScene.ToString());
         else
@@ -43,6 +49,9 @@ public class ScenesManager : MonoBehaviour
 
     public void LoadNextScene()
     {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }

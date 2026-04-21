@@ -25,6 +25,7 @@ public class KitchenScript : MonoBehaviour
 
     private void LoadFridge()
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.KitchenFridge, 0.9f);
         ScenesManager.Instance.LoadScene(ScenesManager.Scene.FridgeScene);
     }
     private void LoadTopCabinet()

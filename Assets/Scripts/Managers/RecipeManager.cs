@@ -236,6 +236,9 @@ public class RecipeManager : MonoBehaviour
         if (recipe.completedFoodObject != null)
             recipe.completedFoodObject.SetActive(true);
 
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiSparkle, 0.9f);
+
         Debug.Log("Recipe completed: " + recipe.recipeName);
     }
 

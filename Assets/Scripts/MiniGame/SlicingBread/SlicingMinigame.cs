@@ -360,6 +360,9 @@ public class SlicingMinigame : MonoBehaviour
 
         if (success)
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiInventoryEquip, 0.8f);
+
             BeginSlicePhase();
             return;
         }
@@ -433,10 +436,17 @@ public class SlicingMinigame : MonoBehaviour
         {
             successfulCuts++;
             UpdateBreadVisualForCuts();
+
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySfx(GameAudioPaths.SlicingBreadCut, 0.85f);
+
             Debug.Log("[Slicing] SUCCESSFUL CUT (" + successfulCuts + "/" + requiredSuccessfulSlices + ")");
         }
         else
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
+
             Debug.Log("[Slicing] FAILED CUT");
         }
 
@@ -516,6 +526,10 @@ public class SlicingMinigame : MonoBehaviour
             knifeRotation.enabled = false;
 
         SetInstruction("Success!");
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiGoodAction, 0.9f);
+
         minigameManager?.ShowSuccessPopup("Success");
     }
 

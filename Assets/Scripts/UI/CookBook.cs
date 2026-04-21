@@ -135,6 +135,8 @@ public class CookBook : MonoBehaviour
         if (cookBookRoot == null)
             return;
 
+        PlayPageFlip();
+
         cookBookRoot.SetActive(true);
         CookBookOpen = true;
 
@@ -146,6 +148,8 @@ public class CookBook : MonoBehaviour
     {
         if (cookBookRoot == null)
             return;
+
+        PlayPageFlip();
 
         CloseHelp();
         cookBookRoot.SetActive(false);
@@ -209,6 +213,8 @@ public class CookBook : MonoBehaviour
         currentSectionPages = new List<GameObject>(recipe.pages);
         pageIndex = 0;
 
+        PlayPageFlip();
+
         if (currentSectionPages[0] != null)
             ActivatePageChain(currentSectionPages[0]);
 
@@ -231,6 +237,7 @@ public class CookBook : MonoBehaviour
 
         if (inRecipeSection && pageIndex == 0)
         {
+            PlayPageFlip();
             SetToHub(Tab.Dishes);
             return;
         }
@@ -254,6 +261,8 @@ public class CookBook : MonoBehaviour
 
         if (newIndex == pageIndex)
             return;
+
+        PlayPageFlip();
 
         pageIndex = newIndex;
 
@@ -485,5 +494,11 @@ public class CookBook : MonoBehaviour
     private bool IsHelpOpen()
     {
         return helpPopupPanel != null && helpPopupPanel.activeSelf;
+    }
+
+    private void PlayPageFlip()
+    {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.UiPageFlip, 0.75f);
     }
 }
