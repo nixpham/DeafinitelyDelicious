@@ -13,10 +13,7 @@ public class SettingsMenu : MonoBehaviour
     [SerializeField] private GameObject creditsPopup;
 
     [Header("Audio")]
-    [SerializeField] private AudioSource mainAudio;
     [SerializeField] private Slider volumeSlider;
-
-    [SerializeField] private AudioSource sfxAudio;
     [SerializeField] private Slider sfxSlider;
 
     private void Start()
@@ -26,25 +23,18 @@ public class SettingsMenu : MonoBehaviour
         if (volumeSlider != null)
         {
             volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-
-            if (mainAudio != null)
-            {
-                volumeSlider.value = mainAudio.volume;
-            }
+            if (AudioManager.Instance != null)
+                volumeSlider.SetValueWithoutNotify(AudioManager.Instance.MusicVolume);
         }
 
         if (sfxSlider != null)
         {
             sfxSlider.onValueChanged.AddListener(OnSFXChanged);
-
-            if (sfxAudio != null)
-            {
-                sfxSlider.value = sfxAudio.volume;
-            }
+            if (AudioManager.Instance != null)
+                sfxSlider.SetValueWithoutNotify(AudioManager.Instance.SfxVolume);
         }
     }
 
-    // SETTINGS BUTTON calls this
     public void ToggleSettings()
     {
         if (settingsRoot != null && settingsRoot.activeSelf)
@@ -111,33 +101,26 @@ public class SettingsMenu : MonoBehaviour
 
     public void OnVolumeChanged(float val)
     {
-        if (mainAudio != null)
+        if (AudioManager.Instance != null)
         {
-            mainAudio.volume = val;
+            AudioManager.Instance.SetMusicVolume(val);
             Debug.Log("Music volume: " + val);
-        }
-        else
-        {
-            Debug.LogWarning("Main audio source is not assigned.");
         }
     }
 
     public void OnSFXChanged(float val)
     {
-        if (sfxAudio != null)
+        if (AudioManager.Instance != null)
         {
-            sfxAudio.volume = val;
+            AudioManager.Instance.SetSfxVolume(val);
             Debug.Log("SFX volume: " + val);
-        }
-        else
-        {
-            Debug.LogWarning("SFX audio source is not assigned.");
         }
     }
 
     public void LoadMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("TitleScreen");
+        if (ScenesManager.Instance != null)
+            ScenesManager.Instance.LoadScene(ScenesManager.Scene.TitleScreen);
     }
 }

@@ -410,6 +410,9 @@ public class FlipMinigame : MonoBehaviour
         isCooking = true;
         actionLocked = false;
 
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.FlippingCooking, 0.6f);
+
         Debug.Log("[Flip] Phase -> COOKING");
         SetInstruction("Sign \"Dance\" to flip, be careful not to burn it!");
     }
@@ -498,6 +501,10 @@ public class FlipMinigame : MonoBehaviour
 
         Side cookedSide = sideDown;
         sideDown = sideDown == Side.Bottom ? Side.Top : Side.Bottom;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(GameAudioPaths.FlippingFlip, 0.85f);
+
         hasFlippedOnce = true;
 
         UpdateBreadSprites();
@@ -621,6 +628,10 @@ public class FlipMinigame : MonoBehaviour
 
         if (bothGood)
         {
+
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiGoodAction, 0.9f);
+
             phase = Phase.Success;
 
             if (attemptsUI != null)
@@ -633,6 +644,9 @@ public class FlipMinigame : MonoBehaviour
         }
         else
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySfx(GameAudioPaths.UiWrongAction, 0.9f);
+
             if (attemptsUI != null)
                 attemptsUI.RegisterAttempt(false);
 

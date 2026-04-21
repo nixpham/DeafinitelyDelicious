@@ -348,6 +348,25 @@ public class NPC : MonoBehaviour
 
         OnSequenceEnded?.Invoke(sequenceToPlay);
 
+        // Prologue -> Restaurant transition with audio fallback
+        if (SceneManager.GetActiveScene().name == "PrologueScene" &&
+            sequenceToPlay == DialogueSequence.Prologue)
+        {
+            if (ScenesManager.Instance != null)
+            {
+                ScenesManager.Instance.LoadScene(ScenesManager.Scene.RestaurantScene);
+                return;
+            }
+            else
+            {
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
+
+                SceneManager.LoadScene("RestaurantScene");
+                return;
+            }
+        }
+
         if (autoLoadRestaurantAfterPrologue &&
             SceneManager.GetActiveScene().name == "PrologueScene" &&
             sequenceToPlay == DialogueSequence.Prologue)

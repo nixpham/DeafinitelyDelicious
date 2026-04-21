@@ -14,7 +14,7 @@ public class AudioManager : MonoBehaviour
 
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private float defaultMusicVolume = 0.8f;
+    [SerializeField] private float defaultMusicVolume = 0.6f;
     [SerializeField] private float defaultSfxVolume = 1f;
 
     public static AudioManager Instance
