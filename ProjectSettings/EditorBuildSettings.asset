@@ -21,19 +21,22 @@ EditorBuildSettings:
     path: Assets/Scenes/KitchenScene.unity
     guid: d61bb9a7e76d3894aaa8a98090dcc7cc
   - enabled: 1
-    path: Assets/Scenes/BottomCabinetScene.unity
-    guid: 78726b51bbaec0a47ab6b9304d05213d
-  - enabled: 1
-    path: Assets/Scenes/TopCabinetScene.unity
-    guid: 5d9177549f34ad74280041a22ebc805b
-  - enabled: 1
     path: Assets/Scenes/FridgeScene.unity
     guid: cc26750c142681b49a86f203e65eeb17
   - enabled: 1
     path: Assets/Scenes/GroceryScene.unity
     guid: 08dbad1a75e41bb46bc5f89d960490d5
   - enabled: 1
-    path: Assets/Scenes/GrandmaHouse.unity
-    guid: 6ca3b75703ed03f4d9bf0165c2a488dd
+    path: Assets/Scenes/BottomCabinetScene.unity
+    guid: 78726b51bbaec0a47ab6b9304d05213d
+  - enabled: 1
+    path: Assets/Scenes/DrawerScene.unity
+    guid: ce373e74186c9954f8a64424164b8f66
+  - enabled: 1
+    path: Assets/Scenes/ShelfScene.unity
+    guid: 567fa03246ad1d84ca32f35f07d1ffec
+  - enabled: 1
+    path: Assets/Scenes/TopCabinetScene.unity
+    guid: 5d9177549f34ad74280041a22ebc805b
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

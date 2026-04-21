@@ -26,6 +26,8 @@ public class ScenesManager : MonoBehaviour
         GroceryScene,
         TopCabinetScene,
         BottomCabinetScene,
+        ShelfScene,
+        DrawerScene,
     }
 
     public void LoadScene(Scene scene)

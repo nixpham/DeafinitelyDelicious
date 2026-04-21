@@ -20,7 +20,9 @@ MonoBehaviour:
       sign: 
     - sprite: {fileID: 21300000, guid: bee8db43b79b47945afe7996c42523d3, type: 3}
       sign: 
-  - shelf: []
+  - shelf:
+    - sprite: {fileID: 0}
+      sign: 
   drawer: []
   lowerCabinet: []
   shelf: []
