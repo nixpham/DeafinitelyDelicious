@@ -3,22 +3,37 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewNPCDialogue", menuName = "NPC Dialogue")]
 public class NPCDialogue : ScriptableObject
 {
-    [Header("Scenes / Scripts")]
     public DialogueLine[] prologueLines;
-    public DialogueLine[] restaurantLines;
+
+    public DialogueLine[] restaurantIntro1Lines;
+    public DialogueLine[] restaurantMomConvo1Lines;
+    public DialogueLine[] restaurantMomReminder1Lines;
+
+    public DialogueLine[] grandmasHouse1Lines;
+    public DialogueLine[] grandmasHouseGrandmaReminderLines;
+
+    public DialogueLine[] restaurantIntro2Lines;
+    public DialogueLine[] restaurantMomReminder2Lines;
+    public DialogueLine[] restaurantGrandmaReminder2Lines;
+
+    public DialogueLine[] kitchenTutorialLines;
+    public DialogueLine[] restaurantIntro3Lines;
+
+    public DialogueLine[] restaurantIntroBefore3Lines;
+    public DialogueLine[] restaurantMomReminder3Lines;
+    public DialogueLine[] restaurantGrandmaReminder3Lines;
+    public DialogueLine[] momGrandmaGrilledCheeseDoneLines;
+
+    public DialogueLine[] mapEndDemoLines;
 
     [Header("Speakers (define MC + other characters here)")]
     public SpeakerDefinition[] speakers;
 
-    [Header("Choices (indexed by dialogue line index)")]
-    public DialogueChoice[] choices;
+    [Header("Choices (PER SEQUENCE, indexed by line index within that sequence)")]
+    public DialogueChoice[] restaurantMomConvo1Choices;
 
     [Header("Typing")]
     public float typingSpeed = 0.05f;
-
-    [Header("Optional Auto Progress (unused in this rewrite, kept for future)")]
-    public bool[] autoProgressLines;
-    public float autoProgressLinesDelay = 1.5f;
 }
 
 public enum SpeakerSide
@@ -30,22 +45,16 @@ public enum SpeakerSide
 [System.Serializable]
 public class SpeakerDefinition
 {
-    [Tooltip("Unique ID used by DialogueLine.speakerId")]
     public string id;
-
     public string displayName;
     public Sprite portrait;
-
-    [Tooltip("MC should be Left. Other characters can default Left or Right.")]
     public SpeakerSide defaultSide = SpeakerSide.Left;
 }
 
 [System.Serializable]
 public class DialogueLine
 {
-    [Tooltip("Matches a SpeakerDefinition.id")]
     public string speakerId;
-
     [TextArea] public string text;
 }
 

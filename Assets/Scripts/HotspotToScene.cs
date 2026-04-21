@@ -7,6 +7,7 @@ public class HotspotToScene : MonoBehaviour
 
     void OnMouseDown()
     {
+        AudioManager.Instance.PlaySfx(GameAudioPaths.UiRoomTransition, 0.75f);
         SceneManager.LoadScene(sceneToLoad);
     }
 }

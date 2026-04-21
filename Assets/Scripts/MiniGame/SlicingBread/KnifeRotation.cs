@@ -1,40 +1,83 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class KnifeRotation : MonoBehaviour
 {
-    public float rotationSpeed = 55f; // Speed of rotation
-    public float minAngle = 70f; // Left rotation limit
-    public float maxAngle = 70f; // Right rotation limit
-    private bool rotatingRight = true;
+    [SerializeField] private float maxAngle = 70f;
+    [SerializeField] private float rotationSpeed = 120f;
 
-    void Update()
+    public bool pauseRotation { get; set; }
+
+    private float currentAngle;
+    private int direction = 1;
+    private bool hasInitialized;
+
+    private void OnEnable()
     {
-        RotateKnife();
-    }
-
-    void RotateKnife()
-    {
-        float rotationStep = rotationSpeed * Time.deltaTime;
-        float currentAngle = transform.eulerAngles.z;
-
-        if (rotatingRight)
+        if (!hasInitialized)
         {
-            transform.Rotate(0, 0, -rotationStep);
-            if (currentAngle < 360 + minAngle && currentAngle > 180)
-            {
-                rotatingRight = false;
-            }
+            currentAngle = -maxAngle;
+            direction = 1;
+            ApplyRotation();
+            hasInitialized = true;
         }
         else
         {
-            transform.Rotate(0, 0, rotationStep);
-            if (currentAngle > maxAngle && currentAngle < 180)
-            {
-                rotatingRight = true;
-            }
+            ApplyRotation();
         }
     }
-}
 
+    private void Update()
+    {
+        if (pauseRotation)
+            return;
+
+        currentAngle += direction * rotationSpeed * Time.deltaTime;
+
+        if (currentAngle >= maxAngle)
+        {
+            currentAngle = maxAngle;
+            direction = -1;
+        }
+        else if (currentAngle <= -maxAngle)
+        {
+            currentAngle = -maxAngle;
+            direction = 1;
+        }
+
+        ApplyRotation();
+    }
+
+    public bool IsStraight(float tolerance = 10f)
+    {
+        return Mathf.Abs(currentAngle) <= tolerance;
+    }
+
+    public void ResetRotation()
+    {
+        currentAngle = -maxAngle;
+        direction = 1;
+        ApplyRotation();
+    }
+
+    public void SetRotationState(float angle, int newDirection)
+    {
+        currentAngle = Mathf.Clamp(angle, -maxAngle, maxAngle);
+        direction = newDirection >= 0 ? 1 : -1;
+        ApplyRotation();
+    }
+
+    public float GetCurrentAngle()
+    {
+        return currentAngle;
+    }
+
+    public int GetDirection()
+    {
+        return direction;
+    }
+
+    private void ApplyRotation()
+    {
+        transform.localEulerAngles = new Vector3(0f, 0f, currentAngle);
+    }
+}

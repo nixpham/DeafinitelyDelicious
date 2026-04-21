@@ -1,39 +1,32 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class KitchenPanController : MonoBehaviour
 {
     [Header("Pan limits (world units)")]
     public float minX = -5.27f;
     public float maxX = 5.75f;
-
     [Header("Tuning")]
     [Tooltip("Multiplier for how much finger/mouse drag moves the camera in world units. 1 = 1:1 drag.")]
     public float dragSpeed = .8f;
-
     public bool panEnabled = true;
-
     private bool dragging;
     private Vector3 lastWorld;
 
     void Update()
     {
         if (!panEnabled) return;
-
-        // Prefer touch if present (mobile)
         if (Input.touchCount > 0)
-        {
             HandleTouch(Input.GetTouch(0));
-        }
         else
-        {
             HandleMouse();
-        }
     }
 
     private void HandleMouse()
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current.IsPointerOverGameObject()) return;
             dragging = true;
             lastWorld = ScreenToWorld(Input.mousePosition);
         }
@@ -42,7 +35,6 @@ public class KitchenPanController : MonoBehaviour
             Vector3 nowWorld = ScreenToWorld(Input.mousePosition);
             float dxWorld = (nowWorld.x - lastWorld.x) * dragSpeed;
             lastWorld = nowWorld;
-
             MoveCameraBy(-dxWorld);
         }
         else if (Input.GetMouseButtonUp(0))
@@ -55,6 +47,7 @@ public class KitchenPanController : MonoBehaviour
     {
         if (t.phase == TouchPhase.Began)
         {
+            if (EventSystem.current.IsPointerOverGameObject(t.fingerId)) return;
             dragging = true;
             lastWorld = ScreenToWorld(t.position);
         }
@@ -63,7 +56,6 @@ public class KitchenPanController : MonoBehaviour
             Vector3 nowWorld = ScreenToWorld(t.position);
             float dxWorld = (nowWorld.x - lastWorld.x) * dragSpeed;
             lastWorld = nowWorld;
-
             MoveCameraBy(-dxWorld);
         }
         else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
@@ -83,10 +75,8 @@ public class KitchenPanController : MonoBehaviour
     {
         UnityEngine.Camera cam = UnityEngine.Camera.main;
         if (cam == null) return Vector3.zero;
-
         float zDist = 0f - cam.transform.position.z;
         screenPos.z = zDist;
-
         return cam.ScreenToWorldPoint(screenPos);
     }
 }

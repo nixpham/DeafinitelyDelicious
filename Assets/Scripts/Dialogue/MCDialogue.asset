@@ -39,25 +39,176 @@ MonoBehaviour:
   - speakerId: mc
     text: "That day, I made a promise to myself: Once I graduate, I\u2019ll come
       back home and bring Grandma\u2019s restaurant back to life."
-  restaurantLines:
+  restaurantIntro1Lines:
   - speakerId: mc
     text: "It felt like yesterday since I last came here. It\u2019s a whole lot barren
-      though that\u2019s for sure."
+      though that\u2019s for sure"
   - speakerId: mc
-    text: Oh! Someone is at the door, I should let them in.
+    text: Oh! someone is at the door I should let them in
   - speakerId: mc
-    text: She must be tired from today. I should go talk to her.
+    text: She must be tired from today. I should go talk to her
+  restaurantMomConvo1Lines:
   - speakerId: mom
     text: Hey sweetie, how does the place look?
   - speakerId: mom
-    text: "Haha, yeah, it\u2019s nice to be back in this room."
+    text: "Haha yeah it\u2019s nice to be back in this room"
   - speakerId: mom
-    text: "Yeah, we had to sell a couple of things since we didn\u2019t have anywhere
-      to put it."
+    text: "Yeah we had to sell a couple of things since we didn\u2019t have anywhere
+      to put it"
   - speakerId: mom
     text: We should go visit your grandma, she has been waiting to see you
   - speakerId: mc
-    text: I guess I will have to follow her.
+    text: I guess I will have to follow her
+  restaurantMomReminder1Lines:
+  - speakerId: mom
+    text: What are you waiting for, let's go!
+  grandmasHouse1Lines:
+  - speakerId: mc
+    text: "I walk into the living room in grandma\u2019s favorite spot."
+  - speakerId: mc
+    text: "She\u2019s rocking on her chair, staring towards the kitchen. When she
+      spots me, she smiles."
+  - speakerId: granny
+    text: When did you get here?
+  - speakerId: mc
+    text: "Just now grandma. I\u2019m glad to be back"
+  - speakerId: granny
+    text: Did you go see the old place?
+  - speakerId: mc
+    text: '{MOM_RESPONSE_LINE}'
+  - speakerId: granny
+    text: Well, I have a gift for you!
+  - speakerId: mc
+    text: '*Granny gifts you a worn-out book*'
+  - speakerId: mc
+    text: What is it?
+  - speakerId: granny
+    text: "It\u2019s all the knowledge I\u2019ve gained when I ran that place"
+  - speakerId: mc
+    text: What do you want me to do with it?
+  - speakerId: granny
+    text: Cook!
+  - speakerId: mc
+    text: Cook? Where?
+  - speakerId: granny
+    text: At the restaurant of course!
+  - speakerId: mc
+    text: What do I cook?
+  - speakerId: granny
+    text: Anything! I gave you my cookbook!
+  - speakerId: mc
+    text: "*Wow, I can\u2019t really understand any of this. The pages are old it\u2019s
+      hard to read the instructions*"
+  - speakerId: mc
+    text: '*All that I could understand is the first page* '
+  - speakerId: mc
+    text: Do you want a grilled cheese sandwich?
+  - speakerId: granny
+    text: I would love that!
+  - speakerId: granny
+    text: "I left my pan at the restaurant though, you\u2019ll have to go back to
+      cook."
+  - speakerId: granny
+    text: I can give you the ingredients though, just tell me what you need
+  - speakerId: tutorial
+    text: In this game you will need to sign to progress in the game
+  - speakerId: tutorial
+    text: 'You can learn to sign any necessary words in the cookbook
+
+'
+  - speakerId: tutorial
+    text: "Click on \u201Cbread\u201D"
+  - speakerId: tutorial
+    text: "Let\u2019s try to sign bread to Grandma"
+  - speakerId: granny
+    text: Let me know what you need
+  - speakerId: tutorial
+    text: Usually, you would sign to Grandma or a shop to collect ingredients in
+      this game
+  - speakerId: tutorial
+    text: Unfortunately, this is still a work in progress, so you will automatically
+      get the ingredients
+  - speakerId: tutorial
+    text: Feel free to still learn the signs from the cookbook though! Click done
+      when ready to progress.
+  - speakerId: mc
+    text: I think that's everything
+  - speakerId: granny
+    text: I look forward to your cooking!
+  grandmasHouseGrandmaReminderLines:
+  - speakerId: Granny
+    text: I look forward to your cooking!
+  restaurantIntro2Lines:
+  - speakerId: mc
+    text: And just like that I was back here again
+  restaurantMomReminder2Lines:
+  - speakerId: mom
+    text: "I heard you\u2019re making grilled cheese for us! I\u2019m excited to
+      eat"
+  restaurantGrandmaReminder2Lines:
+  - speakerId: granny
+    text: Go go cook!
+  kitchenTutorialLines:
+  - speakerId: tutorial
+    text: Time to make your first dish!
+  - speakerId: tutorial
+    text: In the kitchen, there'll be several storage areas that you can keep your
+      ingredients and tools organized in!
+  - speakerId: tutorial
+    text: You can scroll around the kitchen to find them
+  - speakerId: tutorial
+    text: Currently, these are a work in progress, though, so you won't be needing
+      to open and collect items from them
+  - speakerId: tutorial
+    text: Although you would usually sign to collect items from these storage areas,
+      the items will auto appear in the kitchen during this demo
+  - speakerId: tutorial
+    text: You'll need to click on the correct combination of items to begin a cooking
+      minigame step!
+  - speakerId: tutorial
+    text: Refer to your cookbook's recipe pages to see the items required for each
+      step
+  - speakerId: tutorial
+    text: Good luck on your grilled cheese!
+  restaurantIntro3Lines:
+  - speakerId: granny
+    text: "It looks just like how I would\u2019ve made it"
+  - speakerId: mom
+    text: "It\u2019s very delicious"
+  - speakerId: granny
+    text: Here I have something for you
+  - speakerId: mc
+    text: '*Granny hands you a piece of paper*'
+  - speakerId: mc
+    text: What's this?
+  - speakerId: granny
+    text: "It\u2019s to transfer this restaurant to you, I think you\u2019re ready"
+  - speakerId: mom
+    text: Congratulations sweetie! Make sure to explore the area, there are many
+      people excited to meet you
+  restaurantIntroBefore3Lines:
+  - speakerId: tutorial
+    text: Drag your completed dish to the table to serve!
+  restaurantMomReminder3Lines:
+  - speakerId: mom
+    text: I'm kind of a little hungry still, would you mind making another, hun?
+  restaurantGrandmaReminder3Lines:
+  - speakerId: granny
+    text: Go on, make as many as you want!
+  momGrandmaGrilledCheeseDoneLines:
+  - speakerId: mom
+    text: Wow, thanks sweetie!
+  - speakerId: granny
+    text: You're getting better and better!
+  mapEndDemoLines:
+  - speakerId: tutorial
+    text: Good job on your grilled cheese!
+  - speakerId: tutorial
+    text: In the full game, you'd get to continue running the restaurant, unlocking
+      new foods and customers
+  - speakerId: tutorial
+    text: For the demo, though, feel free to continue making as many grilled cheese
+      as your heart desires!
   speakers:
   - id: mc
     displayName: You
@@ -71,22 +222,20 @@ MonoBehaviour:
     displayName: Granny
     portrait: {fileID: 21300000, guid: 1452cff74c38c604e8abd7e8043e0add, type: 3}
     defaultSide: 1
-  choices:
-  - options: []
-  - options: []
-  - options: []
+  - id: tutorial
+    displayName: Tutorial
+    portrait: {fileID: 0}
+    defaultSide: 0
+  restaurantMomConvo1Choices:
   - options:
     - text: Just like how I remembered!
-      nextLineIndex: 4
-      nextNextLineIndex: 6
-    - text: "It\u2019s missing a few things."
-      nextLineIndex: 5
-      nextNextLineIndex: 6
-  - options: []
+      nextLineIndex: 1
+      nextNextLineIndex: 3
+    - text: "It\u2019s missing a few things\u2026"
+      nextLineIndex: 2
+      nextNextLineIndex: 3
   - options: []
   - options: []
   - options: []
   - options: []
   typingSpeed: 0.08
-  autoProgressLines: 
-  autoProgressLinesDelay: 1.5

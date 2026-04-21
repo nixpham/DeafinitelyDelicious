@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,13 @@ using TMPro;
 
 public class StudySessionPopup : MonoBehaviour
 {
+    [Serializable]
+    public class SignEntry
+    {
+        public string signName;
+        public VideoClip clip;
+    }
+
     [Header("Root")]
     public GameObject popupRoot;
 
@@ -23,10 +31,10 @@ public class StudySessionPopup : MonoBehaviour
     public Button replayButton;
     public Button nextButton;
 
-    [Header("Sign Clips")]
-    public List<VideoClip> signClips;  // Assign in Inspector: [0] = Dance, [1] = Cut
+    [Header("Available Signs")]
+    public List<SignEntry> availableSigns = new();
 
-    private string[] _signNames;
+    private readonly List<SignEntry> _currentSessionSigns = new();
     private int _currentIndex = 0;
 
     void Awake()
@@ -41,17 +49,59 @@ public class StudySessionPopup : MonoBehaviour
             nextButton.onClick.AddListener(OnNext);
     }
 
+    public void OpenSingleSign(string signName)
+    {
+        OpenSession(new string[] { signName });
+    }
+
     public void OpenSession(string[] signNames)
     {
-        _signNames = signNames;
-
+        _currentSessionSigns.Clear();
         _currentIndex = 0;
+
+        if (signNames == null || signNames.Length == 0)
+        {
+            Debug.LogWarning("StudySessionPopup: No sign names were passed in.");
+            return;
+        }
+
+        for (int i = 0; i < signNames.Length; i++)
+        {
+            SignEntry entry = FindSignEntry(signNames[i]);
+
+            if (entry != null)
+                _currentSessionSigns.Add(entry);
+            else
+                Debug.LogWarning("StudySessionPopup: No clip found for sign name: " + signNames[i]);
+        }
+
+        if (_currentSessionSigns.Count == 0)
+        {
+            Debug.LogWarning("StudySessionPopup: No valid signs found for this session.");
+            return;
+        }
 
         if (popupRoot != null)
             popupRoot.SetActive(true);
 
-        // Show intro state
         ShowIntroState();
+    }
+
+    private SignEntry FindSignEntry(string signName)
+    {
+        if (string.IsNullOrWhiteSpace(signName))
+            return null;
+
+        foreach (SignEntry entry in availableSigns)
+        {
+            if (entry == null)
+                continue;
+
+            if (string.Equals(entry.signName, signName, StringComparison.OrdinalIgnoreCase))
+                return entry;
+        }
+
+        return null;
     }
 
     private void ShowIntroState()
@@ -80,7 +130,6 @@ public class StudySessionPopup : MonoBehaviour
 
     private void OnContinueIntro()
     {
-        // Hide the intro text and show the video + controls
         if (introText != null)
             introText.gameObject.SetActive(false);
 
@@ -96,7 +145,6 @@ public class StudySessionPopup : MonoBehaviour
         if (nextButton != null)
             nextButton.gameObject.SetActive(true);
 
-        // Start the first sign video
         PlayCurrentSign();
     }
 
@@ -108,28 +156,32 @@ public class StudySessionPopup : MonoBehaviour
             return;
         }
 
-        if (signClips == null || signClips.Count == 0)
+        if (_currentSessionSigns.Count == 0)
         {
-            Debug.LogWarning("StudySessionPopup: signClips is empty");
+            Debug.LogWarning("StudySessionPopup: current session signs list is empty");
             return;
         }
 
-        if (_currentIndex < 0 || _currentIndex >= signClips.Count)
+        if (_currentIndex < 0 || _currentIndex >= _currentSessionSigns.Count)
         {
-            Debug.LogWarning("StudySessionPopup: _currentIndex out of range: " + _currentIndex);
+            Debug.LogWarning("StudySessionPopup: current index out of range: " + _currentIndex);
             return;
         }
 
-        Debug.Log("StudySessionPopup: Playing clip " + signClips[_currentIndex].name);
+        SignEntry currentEntry = _currentSessionSigns[_currentIndex];
 
-        videoPlayer.clip = signClips[_currentIndex];
+        if (currentEntry.clip == null)
+        {
+            Debug.LogWarning("StudySessionPopup: clip is NULL for sign " + currentEntry.signName);
+            return;
+        }
+
         videoPlayer.Stop();
+        videoPlayer.clip = currentEntry.clip;
         videoPlayer.Play();
 
-        if (signNameText != null && _signNames != null && _currentIndex < _signNames.Length)
-        {
-            signNameText.text = "Sign: " + _signNames[_currentIndex];
-        }
+        if (signNameText != null)
+            signNameText.text = currentEntry.signName;
     }
 
     private void OnReplay()
@@ -141,14 +193,12 @@ public class StudySessionPopup : MonoBehaviour
     {
         _currentIndex++;
 
-        if (_currentIndex < signClips.Count && _signNames != null && _currentIndex < _signNames.Length)
+        if (_currentIndex < _currentSessionSigns.Count)
         {
-            // Play next sign
             PlayCurrentSign();
         }
         else
         {
-            // No more signs – close the popup
             CloseSession();
         }
     }
@@ -158,7 +208,12 @@ public class StudySessionPopup : MonoBehaviour
         if (videoPlayer != null)
             videoPlayer.Stop();
 
+        _currentSessionSigns.Clear();
+        _currentIndex = 0;
+
         if (popupRoot != null)
             popupRoot.SetActive(false);
+
+        ShowIntroState();
     }
 }

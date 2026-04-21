@@ -1,44 +1,94 @@
+using System;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.UI;
+using TMPro;
 
 public class MinigameManager : MonoBehaviour
 {
-    public GameObject signRecognizer;
-    public GameObject slicingMinigamePanel;
-    public GameObject stackingMinigamePanel;
-    public GameObject flippingMinigamePanel;
+    [Serializable]
+    public class MinigameEntry
+    {
+        public string minigameName;
+        public GameObject panelRoot;
+    }
 
-    private GameObject activeMinigame = null;
-    public RecipeManager recipeManager;
+    [Header("Minigame Panels")]
+    [SerializeField] private MinigameEntry[] minigames;
+
+    [Header("Shared Success Popup")]
+    [SerializeField] private GameObject successPopupRoot;
+    [SerializeField] private TMP_Text successText;
+    [SerializeField] private Button nextButton;
+    [SerializeField] private Button redoButton;
+
+    [Header("Optional")]
+    [SerializeField] private RecipeManager recipeManager;
+
+    private GameObject activeMinigame;
+
+    public bool IsMinigameOpen => activeMinigame != null;
+
+    private void Awake()
+    {
+        HideSuccessPopup();
+
+        if (nextButton != null)
+        {
+            nextButton.onClick.RemoveAllListeners();
+            nextButton.onClick.AddListener(HandleNextPressed);
+        }
+
+        if (redoButton != null)
+        {
+            redoButton.onClick.RemoveAllListeners();
+            redoButton.onClick.AddListener(HandleRedoPressed);
+        }
+
+        SetRecognizerPreviewVisible(false);
+    }
 
     public void OpenMinigame(string minigameName)
     {
-        switch (minigameName)
+        Debug.Log("[MinigameManager] OpenMinigame called with: " + minigameName);
+
+        if (activeMinigame != null)
         {
-            case "SlicingMinigamePanel":
-                slicingMinigamePanel.SetActive(true);
-                activeMinigame = slicingMinigamePanel;
-                Debug.Log("Opening slicing minigame panel");
-                break;
-
-            case "StackingMinigamePanel":
-                stackingMinigamePanel.SetActive(true);
-                activeMinigame = stackingMinigamePanel;
-                Debug.Log("Opening stacking minigame panel");
-                break;
-
-            case "FlippingMinigamePanel":
-                flippingMinigamePanel.SetActive(true);
-                activeMinigame = flippingMinigamePanel;
-                Debug.Log("Opening flipping minigame panel");
-                break;
-
-            default:
-                Debug.LogError("Minigame not found: " + minigameName);
-                break;
+            activeMinigame.SetActive(false);
+            activeMinigame = null;
         }
 
-        EnableCamera(true);
+        GameObject minigamePanel = FindMinigamePanel(minigameName);
+        if (minigamePanel == null)
+        {
+            Debug.LogError("[MinigameManager] Could not find minigame: " + minigameName);
+            SetRecognizerPreviewVisible(false);
+            return;
+        }
+
+        activeMinigame = minigamePanel;
+        activeMinigame.SetActive(true);
+
+        HideSuccessPopup();
+        SetRecognizerPreviewVisible(true);
+
+        activeMinigame.SendMessage("OnOpenedByManager", SendMessageOptions.DontRequireReceiver);
+    }
+
+    public void ShowSuccessPopup(string message = "Success")
+    {
+        if (successPopupRoot != null)
+            successPopupRoot.SetActive(true);
+
+        if (successText != null)
+            successText.text = message;
+
+        Debug.Log("[MinigameManager] Showing success popup.");
+    }
+
+    public void HideSuccessPopup()
+    {
+        if (successPopupRoot != null)
+            successPopupRoot.SetActive(false);
     }
 
     public void CloseMinigame()
@@ -49,32 +99,69 @@ public class MinigameManager : MonoBehaviour
             activeMinigame = null;
         }
 
-        EnableCamera(false);
+        HideSuccessPopup();
+        SetRecognizerPreviewVisible(false);
 
-        // Notify RecipeManager that the minigame is completed
-        if (recipeManager != null)
-        {
-            recipeManager.CompleteMinigame(); // Call this method to progress the recipe
-        }
+        Debug.Log("[MinigameManager] Minigame closed.");
     }
-
 
     public void RestartMinigame()
     {
-        if (activeMinigame != null)
+        if (activeMinigame == null)
         {
-            Debug.Log("Restarting minigame: " + activeMinigame.name);
-            activeMinigame.SetActive(false); // Close it first
-            activeMinigame.SetActive(true);  // Reopen to reset
+            Debug.LogWarning("[MinigameManager] No active minigame to restart.");
+            return;
         }
-        else
-        {
-            Debug.LogError("No active minigame to restart.");
-        }
+
+        HideSuccessPopup();
+        SetRecognizerPreviewVisible(true);
+
+        activeMinigame.SendMessage("OnRedoPressed", SendMessageOptions.DontRequireReceiver);
+
+        Debug.Log("[MinigameManager] Restart requested.");
     }
 
-    public void EnableCamera(bool enable)
+    private void HandleNextPressed()
     {
-        signRecognizer.SetActive(enable);
+        Debug.Log("[MinigameManager] NEXT button clicked");
+
+        if (activeMinigame != null)
+            activeMinigame.SendMessage("OnNextPressed", SendMessageOptions.DontRequireReceiver);
+
+        if (recipeManager != null)
+            recipeManager.CompleteMinigame();
+
+        CloseMinigame();
+    }
+
+    private void HandleRedoPressed()
+    {
+        Debug.Log("[MinigameManager] REDO button clicked");
+        RestartMinigame();
+    }
+
+    private GameObject FindMinigamePanel(string minigameName)
+    {
+        if (minigames == null || minigames.Length == 0)
+            return null;
+
+        foreach (MinigameEntry entry in minigames)
+        {
+            if (entry == null)
+                continue;
+
+            if (string.Equals(entry.minigameName, minigameName, StringComparison.Ordinal))
+                return entry.panelRoot;
+        }
+
+        return null;
+    }
+
+    private void SetRecognizerPreviewVisible(bool visible)
+    {
+        if (PersistentSignEngine.Instance != null)
+            PersistentSignEngine.Instance.SetPreviewVisible(visible);
+        else
+            Debug.LogWarning("[MinigameManager] PersistentSignEngine.Instance is null.");
     }
 }
