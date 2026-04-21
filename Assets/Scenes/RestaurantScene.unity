@@ -154,8 +154,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -190.79, y: 280.91}
-  m_SizeDelta: {x: 281.59, y: 461.81}
+  m_AnchoredPosition: {x: -152.5496, y: 280.91}
+  m_SizeDelta: {x: 205.1092, y: 461.81}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &143523409
 MonoBehaviour:
@@ -1216,9 +1216,7 @@ MonoBehaviour:
   backgroundImage: {fileID: 574908741}
   settingsPopup: {fileID: 574908740}
   creditsPopup: {fileID: 574908739}
-  mainAudio: {fileID: 0}
   volumeSlider: {fileID: 574908738}
-  sfxAudio: {fileID: 0}
   sfxSlider: {fileID: 574908737}
 --- !u!4 &666684784
 Transform:
@@ -2100,7 +2098,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -319.87, y: -127}
-  m_SizeDelta: {x: 639.74, y: 1117.4188}
+  m_SizeDelta: {x: 695, y: 1300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1513825104
 MonoBehaviour:
@@ -2186,7 +2184,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1
 --- !u!222 &1513825106
 CanvasRenderer:
@@ -2345,9 +2343,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 267492841}
-  - {fileID: 143523408}
   - {fileID: 1507288868}
   - {fileID: 1862762841}
+  - {fileID: 143523408}
   m_Father: {fileID: 884569299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

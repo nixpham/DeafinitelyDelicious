@@ -38,5 +38,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TopCabinetScene.unity
     guid: 5d9177549f34ad74280041a22ebc805b
+  - enabled: 1
+    path: Assets/Scenes/GrandmaHouse.unity
+    guid: 6ca3b75703ed03f4d9bf0165c2a488dd
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
