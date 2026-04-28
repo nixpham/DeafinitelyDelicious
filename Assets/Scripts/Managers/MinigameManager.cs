@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -11,6 +12,9 @@ public class MinigameManager : MonoBehaviour
         public string minigameName;
         public GameObject panelRoot;
     }
+
+    [Header("Sign Engine")]
+    [SerializeField] private GameObject signEngineRoot;
 
     [Header("Minigame Panels")]
     [SerializeField] private MinigameEntry[] minigames;
@@ -25,6 +29,7 @@ public class MinigameManager : MonoBehaviour
     [SerializeField] private RecipeManager recipeManager;
 
     private GameObject activeMinigame;
+    private Coroutine openRoutine;
 
     public bool IsMinigameOpen => activeMinigame != null;
 
@@ -44,12 +49,43 @@ public class MinigameManager : MonoBehaviour
             redoButton.onClick.AddListener(HandleRedoPressed);
         }
 
-        SetRecognizerPreviewVisible(false);
+        // Do NOT turn engine off here.
+        // Let the engine initialize like it does in the tutorial scene.
+    }
+
+    private IEnumerator Start()
+    {
+        // Engine ON so it can initialize
+        SetEngineCanvasAlpha(0f);
+        SetSignEngineActive(true);
+
+        yield return null;
+        yield return null;
+        yield return new WaitForSeconds(0.25f);
+
+        // Turn engine OFF after init
+        SetSignEngineActive(false);
+
+        // Reset alpha back to visible for future minigames
+        SetEngineCanvasAlpha(1f);
     }
 
     public void OpenMinigame(string minigameName)
     {
         Debug.Log("[MinigameManager] OpenMinigame called with: " + minigameName);
+
+        if (openRoutine != null)
+            StopCoroutine(openRoutine);
+
+        openRoutine = StartCoroutine(OpenMinigameRoutine(minigameName));
+    }
+
+    private IEnumerator OpenMinigameRoutine(string minigameName)
+    {
+        SetSignEngineActive(true);
+
+        // Small wait so engine is awake before panel sends OnOpenedByManager.
+        yield return null;
 
         if (activeMinigame != null)
         {
@@ -61,17 +97,55 @@ public class MinigameManager : MonoBehaviour
         if (minigamePanel == null)
         {
             Debug.LogError("[MinigameManager] Could not find minigame: " + minigameName);
-            SetRecognizerPreviewVisible(false);
-            return;
+            SetSignEngineActive(false);
+            openRoutine = null;
+            yield break;
         }
 
         activeMinigame = minigamePanel;
         activeMinigame.SetActive(true);
 
         HideSuccessPopup();
-        SetRecognizerPreviewVisible(true);
 
         activeMinigame.SendMessage("OnOpenedByManager", SendMessageOptions.DontRequireReceiver);
+
+        openRoutine = null;
+    }
+
+    public void CloseMinigame()
+    {
+        if (openRoutine != null)
+        {
+            StopCoroutine(openRoutine);
+            openRoutine = null;
+        }
+
+        if (activeMinigame != null)
+        {
+            activeMinigame.SetActive(false);
+            activeMinigame = null;
+        }
+
+        HideSuccessPopup();
+        SetSignEngineActive(false);
+
+        Debug.Log("[MinigameManager] Minigame closed.");
+    }
+
+    public void RestartMinigame()
+    {
+        if (activeMinigame == null)
+        {
+            Debug.LogWarning("[MinigameManager] No active minigame to restart.");
+            return;
+        }
+
+        HideSuccessPopup();
+        SetSignEngineActive(true);
+
+        activeMinigame.SendMessage("OnRedoPressed", SendMessageOptions.DontRequireReceiver);
+
+        Debug.Log("[MinigameManager] Restart requested.");
     }
 
     public void ShowSuccessPopup(string message = "Success")
@@ -89,36 +163,6 @@ public class MinigameManager : MonoBehaviour
     {
         if (successPopupRoot != null)
             successPopupRoot.SetActive(false);
-    }
-
-    public void CloseMinigame()
-    {
-        if (activeMinigame != null)
-        {
-            activeMinigame.SetActive(false);
-            activeMinigame = null;
-        }
-
-        HideSuccessPopup();
-        SetRecognizerPreviewVisible(false);
-
-        Debug.Log("[MinigameManager] Minigame closed.");
-    }
-
-    public void RestartMinigame()
-    {
-        if (activeMinigame == null)
-        {
-            Debug.LogWarning("[MinigameManager] No active minigame to restart.");
-            return;
-        }
-
-        HideSuccessPopup();
-        SetRecognizerPreviewVisible(true);
-
-        activeMinigame.SendMessage("OnRedoPressed", SendMessageOptions.DontRequireReceiver);
-
-        Debug.Log("[MinigameManager] Restart requested.");
     }
 
     private void HandleNextPressed()
@@ -157,11 +201,38 @@ public class MinigameManager : MonoBehaviour
         return null;
     }
 
-    private void SetRecognizerPreviewVisible(bool visible)
+    private void SetSignEngineActive(bool active)
     {
-        if (PersistentSignEngine.Instance != null)
-            PersistentSignEngine.Instance.SetPreviewVisible(visible);
+        if (signEngineRoot != null)
+            signEngineRoot.SetActive(active);
         else
-            Debug.LogWarning("[MinigameManager] PersistentSignEngine.Instance is null.");
+            Debug.LogWarning("[MinigameManager] Sign Engine Root is not assigned.");
+
+        if (!active)
+            StopAllWebcams();
+    }
+
+    private void StopAllWebcams()
+    {
+        WebCamTexture[] cams = Resources.FindObjectsOfTypeAll<WebCamTexture>();
+
+        foreach (WebCamTexture cam in cams)
+        {
+            if (cam != null && cam.isPlaying)
+                cam.Stop();
+        }
+    }
+
+    private void SetEngineCanvasAlpha(float alpha)
+    {
+        if (signEngineRoot == null)
+            return;
+
+        CanvasGroup canvasGroup = signEngineRoot.GetComponent<CanvasGroup>();
+
+        if (canvasGroup == null)
+            canvasGroup = signEngineRoot.AddComponent<CanvasGroup>();
+
+        canvasGroup.alpha = alpha;
     }
 }

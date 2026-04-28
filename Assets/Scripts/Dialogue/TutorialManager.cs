@@ -410,7 +410,7 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.GrandmaWaitBreadSign:
                 SetGrandmaVisible(true);
-                SetActive(refs.signEngineRoot, true);
+                SetSignEngineActive(true);
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
@@ -421,7 +421,7 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.GrandmaWaitSignDoneGate:
                 SetGrandmaVisible(true);
-                SetActive(refs.signEngineRoot, true);
+                SetSignEngineActive(true);
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(true);
@@ -432,7 +432,7 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.GrandmaWaitAfterSignDone:
                 SetGrandmaVisible(true);
-                SetActive(refs.signEngineRoot, false);
+                SetSignEngineActive(false);
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
@@ -443,7 +443,7 @@ public class TutorialManager : MonoBehaviour
 
             case TutorialStep.GrandmaWaitBackButton:
                 SetGrandmaVisible(true);
-                SetActive(refs.signEngineRoot, false);
+                SetSignEngineActive(false);
                 if (refs.signDoneButton != null)
                 {
                     refs.signDoneButton.gameObject.SetActive(false);
@@ -457,6 +457,21 @@ public class TutorialManager : MonoBehaviour
                 refs.conversationNPC?.SetExternalPause(true);
                 break;
         }
+    }
+
+    private void OnDisable()
+    {
+        SetSignEngineActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        SetSignEngineActive(false);
+    }
+
+    private void OnApplicationQuit()
+    {
+        SetSignEngineActive(false);
     }
 
     private void ApplyKitchenStep()
@@ -534,7 +549,7 @@ public class TutorialManager : MonoBehaviour
         SetActive(refs.cookbookHighlight, false);
         SetActive(refs.grilledCheeseHighlight, false);
         SetActive(refs.breadHighlight, false);
-        SetActive(refs.signEngineRoot, false);
+        SetSignEngineActive(false);
 
         SetInteractable(refs.doorButton, false);
         SetInteractable(refs.momButton, false);
@@ -632,6 +647,26 @@ public class TutorialManager : MonoBehaviour
             Step = TutorialStep.GrandmaIntro;
             SaveStep();
             SceneManager.LoadScene(grandmaSceneName);
+        }
+    }
+
+    private void SetSignEngineActive(bool active)
+    {
+        if (refs != null && refs.signEngineRoot != null)
+            refs.signEngineRoot.SetActive(active);
+
+        if (!active)
+            StopAllWebcams();
+    }
+
+    private void StopAllWebcams()
+    {
+        WebCamTexture[] cams = Resources.FindObjectsOfTypeAll<WebCamTexture>();
+
+        foreach (WebCamTexture cam in cams)
+        {
+            if (cam != null && cam.isPlaying)
+                cam.Stop();
         }
     }
 
@@ -782,7 +817,7 @@ public class TutorialManager : MonoBehaviour
             Debug.Log("Sign done pressed - buffer triggered.");
         }
 
-        SetActive(refs.signEngineRoot, false);
+        SetSignEngineActive(false);
 
         if (refs.signDoneButton != null)
         {
