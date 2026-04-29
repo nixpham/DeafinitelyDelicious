@@ -170,12 +170,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -218,7 +218,6 @@ RectTransform:
   m_Children:
   - {fileID: 1296624579}
   - {fileID: 1417177850}
-  - {fileID: 1751158276}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -538,10 +537,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 632810875}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 540, y: -466}
-  m_SizeDelta: {x: 966.0494, y: 440.7827}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -416}
+  m_SizeDelta: {x: 966.0493, y: 440.7827}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1296624580
 MonoBehaviour:
@@ -565,7 +564,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 631cb365a167b3e4a9ba6219c78cf646, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -806,7 +805,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 632810875}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1259509694123342556, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_Name
@@ -862,7 +861,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.73056
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_LocalRotation.w
@@ -882,11 +881,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 540.00244
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 883.3397
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -920,6 +919,42 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: LoadMenu
       objectReference: {fileID: 0}
+    - target: {fileID: 5256153679870456537, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817463427259448731, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6148495832452461064, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6148495832452461064, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6148495832452461064, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 6148495832452461064, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 6964231758607901795, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7030558964052594603, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9015693719255785833, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -936,11 +971,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
---- !u!224 &1751158276 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2585857600118777494, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
-  m_PrefabInstance: {fileID: 1751158274}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1751158277 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1972850522420955106, guid: 33838d5aae8cf8244902e33e90ec5f56, type: 3}
@@ -1118,9 +1148,9 @@ RectTransform:
   - {fileID: 1247571204}
   m_Father: {fileID: 1417177850}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -287}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: -187}
   m_SizeDelta: {x: 810, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1973261124
@@ -1201,7 +1231,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 0435420f2968fda48a050ae8606e13b0, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -1321,6 +1351,7 @@ SceneRoots:
   - {fileID: 1133306754}
   - {fileID: 2027681961}
   - {fileID: 632810875}
+  - {fileID: 1751158274}
   - {fileID: 1853516477}
   - {fileID: 1918889127}
   - {fileID: 1422162167}

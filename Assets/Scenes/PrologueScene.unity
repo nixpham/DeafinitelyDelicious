@@ -153,18 +153,27 @@ MonoBehaviour:
   grandmaSceneName: GrandmaHouse
   kitchenSceneName: KitchenScene
   tutorialStepKey: DEMO_TUTORIAL_STEP
-  grandmaGiftPopupShowAfterIndex: 5
-  grandmaGiftPopupHideAfterIndex: 7
+  restaurantIntro1SeenKey: DEMO_RESTAURANT_INTRO1_SEEN
+  restaurantIntro2SeenKey: DEMO_RESTAURANT_INTRO2_SEEN
+  kitchenTutorialSeenKey: DEMO_KITCHEN_TUTORIAL_SEEN
+  grandmaVisualOverride: {fileID: 0}
   grandmaPauseForCookbookAfterIndex: 13
   grandmaResumeAfterCookbookIndex: 14
   grandmaPauseForGrilledCheeseAfterIndex: 14
   grandmaResumeAfterGrilledCheeseIndex: 15
+  grandmaCloseCookbookOnLoveLineIndex: 19
   grandmaPauseForCookbookReopenAfterIndex: 18
   grandmaResumeAfterCookbookReopenIndex: 19
   grandmaPauseForBreadClickAfterIndex: 20
   grandmaResumeAfterStudySessionIndex: 21
   grandmaPauseForSignButtonAfterIndex: 22
-  grandmaPauseForRemainingIngredientCookbookAfterIndex: 24
+  grandmaResumeAfterSignButtonIndex: 27
+  grandmaPauseForSignDoneAfterIndex: 28
+  grandmaResumeAfterSignDoneIndex: 29
+  grandmaPauseForBackButtonAfterIndex: 30
+  tutorialCompletedKey: DEMO_TUTORIAL_COMPLETED
+  firstServeFinishedKey: DEMO_FIRST_GRILLED_CHEESE_SERVE_FINISHED
+  servingReadyKey: DEMO_GRILLED_CHEESE_READY_TO_SERVE
 --- !u!4 &83114323
 Transform:
   m_ObjectHideFlags: 0
@@ -245,12 +254,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -778,6 +787,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8ce35f80ab70c34880faf42aa6aaafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialSceneRefs
+  signEngine: {fileID: 0}
   sceneKind: 0
   restaurantNPC: {fileID: 1306294327}
   conversationNPC: {fileID: 0}
@@ -793,6 +803,8 @@ MonoBehaviour:
   restaurantGrandmaHighlight: {fileID: 0}
   mapButton: {fileID: 0}
   kitchenButton: {fileID: 0}
+  restaurantCompletedGrilledCheeseObject: {fileID: 0}
+  serveTableDropZone: {fileID: 0}
   grandmaHouseSprite: {fileID: 0}
   backButton: {fileID: 0}
   cookbookButton: {fileID: 0}
@@ -804,8 +816,10 @@ MonoBehaviour:
   breadButton: {fileID: 0}
   breadHighlight: {fileID: 0}
   studySessionRoot: {fileID: 0}
+  studySessionPopup: {fileID: 0}
   signButton: {fileID: 0}
   signEngineRoot: {fileID: 0}
+  signDoneButton: {fileID: 0}
   giftPopup: {fileID: 0}
 --- !u!4 &1689685100
 Transform:
@@ -975,6 +989,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1306294327}
+    - target: {fileID: 3937652665189088379, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4982227583041762929, guid: fac576fba988f0c4f8882333acf4a54f, type: 3}
       propertyPath: m_Color.a
       value: 0
